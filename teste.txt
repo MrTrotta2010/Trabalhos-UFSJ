@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-esse arquivo é um teste
-=======
 esse arquivo é um teste
 
 testando o merge do git
->>>>>>> fb9bd1d60ca285ffdf9ba1341bc0e762514ce852
