@@ -3,7 +3,7 @@
 Repositório com os trabalhos da facu
 
 Para instalar:
--sudo apt-install git
+- sudo apt-install git
 
 Para clonar o repositório:
 -git clone <link no github> //Na pasta criada
