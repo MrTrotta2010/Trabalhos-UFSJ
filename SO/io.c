@@ -1,49 +1,87 @@
 #include "shellso.h"
 
-char ** interpretaEntrada(char *input){
+_Bool entradaVazia(char* input){
+	if(strcmp(input, "\n") == 0 || strcmp(input, "\0") == 0){
+	//retorna um código pra função que chamou, informando a entrada vazia
+		return 1
+	}
+	return 0;
+}
 
-	short argc = 0;
-	char **argv, *token;
+
+_Bool fim(char *input){
+	if(strcmp(input, "fim\n") == 0){
+		return 1;
+	}
+	return 0;
+}
+
+int numArgs(char * input){
+	
+	int argc = 1, i;
+
+	for(i = 0; i < strlen(input); i++){
+		if(input[i] == ' '){
+			argc++;
+		}
+	}
+	return argc;
+}
+
+int numProcess(char * input){
+	int argc = 1, i;
+
+	for(i = 0; i < strlen(input); i++){
+		if(input[i] == '|'){
+			argc++;
+		}
+	}
+	return argc;
+}
+
+char *** interpretaEntrada(char *input){
+
+	char ***argv, *token;
 
 	// verificar entrada vazia
-	if(strcmp(input, "\n") == 0 || strcmp(input, "\0") == 0){
-		//retorna um código pra função que chamou, informando a entrada vazia
+	if(entradaVazia(input)){
 		return NULL;
 	}
 
 	// verifica comando de término do shell
-	if(strcmp(input, "fim\n") == 0){
+	if(fim(input)){
 		// mata o shell
-		exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);		
 	}
 
-	//conta a quantidade de argumentos pra alocar o vetor de strings argv
-	for(int i = 0; i < strlen(input); i++){
-		if(input[i] == ' ') argc++;
-	}
-
-	//aloca o vetor de argumentos
-	argv = (char**) malloc(argc * sizeof(char*));
+	//aloca um vetor de vetor de argumentos (cada posição é um vetor de argumento pra um processo que será criado)
+	argv = (char***) malloc(numProcess(input) * sizeof(char**));
 
 	//token recebe o primeiro argumento
     token = strtok(input, " ");
 
-    argc = 0;
-    while (token != NULL) {
-        argv[argc] = (char*) malloc( strlen(token) * sizeof(char));
-        strcpy(argv[argc], token);
-        token = strtok(NULL, " ");
-        argc++;
-    }
+    //pra cada processo, preenche seu argv
+	for(int j = 0; j < numProcess(input); j++){
 
-    //caso salve o '\n' no fim da string, retira o \n para corrigir o argumento
-    if(argv[argc-1][strlen(argv[argc-1])-1] == '\n'){
-    	argv[argc-1][strlen(argv[argc-1])-1] = '\0';
-   	}
+		//aloca o vetor de argumento do processo j
+		//TODO: tá alocando memória desnecessária aqui
+		argv[j] = (char**) malloc(numArgs(input) * sizeof(char*));
 
-   	//ultima posição do vetor de argumentos aponta para NULL, para indicar fim dos argumentos
-   	argv[argc] = NULL;
+	    //copia os argumentos do processo j pro argv[j]
+	    for(short argc = 0; token != NULL && token != '|'; argc++) {
+	        argv[j][argc] = (char*) malloc(strlen(token) * sizeof(char));
+	        strcpy(argv[j][argc], token);
+	        token = strtok(NULL, " ");
+	    }
 
+	    //caso a string termine com a quebra de linha, a retira para corrigir o argumento
+	    if(argv[argc-1][strlen(argv[argc-1])-1] == '\n'){
+	    	argv[argc-1][strlen(argv[argc-1])-1] = '\0';
+	   	}
+
+	   	//ultima posição do vetor de argumentos aponta para NULL, para indicar fim dos argumentos
+	   	argv[j][argc] = NULL;
+	}
 
 	return argv;
 }

@@ -2,20 +2,28 @@
 
 void shell(int argc, char *argv[]){
 
+	// variável para o pipe
+	int fd[2];
+
+	// variável que armazena o número de processos (número de programas a serem executados em uma linha de comando
+	int numProcess;
+
 	// variável que armazena a entrada 
 	char input[1024];
 
-	// variável que armazena os argumentos da entrada
-	char **arguments;
+	// variável que é um vetor de vetor que armazena os argumentos da entrada
+	char ***arguments;
 
 	// variável que armazena o pid do processo filho
 	pid_t pid;
 
-	//Variável para armazenar o possível arquivo passado por parâmetro pro shell(modo arquivo)
+	// Variável para armazenar o possível arquivo passado por parâmetro pro shell(modo arquivo)
 	FILE *file;
 
 	//caso entre no modo arquivo
 	if(argc == 2){
+
+		//abre o arquivo
 		file = openFile(argv[1]);
 	}
 
@@ -45,6 +53,10 @@ void shell(int argc, char *argv[]){
 		// processa a entrada e retorna um vetor contendo os argumentos da entrada
 		arguments = interpretaEntrada(input);
 
+		//pego o número de procesos
+		numProcess = numProcess(input);
+
+
 		//se o vetor de argumentos for vazio, retorna no loop
 		if(arguments == NULL){
 			continue;
@@ -56,18 +68,27 @@ void shell(int argc, char *argv[]){
 			continue;
 		}
 		
-		// processo filho: altera a imagem do processo filho (executa o programa )
-		if(pid == 0){
-			if(execvp(arguments[0], arguments) == -1){
-				perror("execvp");
+		if(numProcess == 1){
+			// processo filho: altera a imagem do processo filho (executa o programa )
+			if(pid == 0){
+				if(execvp(arguments[0][0], arguments[0]) == -1){
+					perror("execvp");
+				}
+				exit(EXIT_SUCCESS);
 			}
-			exit(EXIT_SUCCESS);
+
+			// processo pai: espera o filho terminar
+			else{
+				wait(NULL);
+			}
+		}
+		else{ //pipe
+			
 		}
 
-		// processo pai: espera o filho terminar
-		else{
-			wait(NULL);
-		}
+		
     }
 
 }
+
+
