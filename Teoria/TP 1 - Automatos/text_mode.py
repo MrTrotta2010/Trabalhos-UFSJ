@@ -89,4 +89,4 @@ if __name__ == "__main__":
 		else:
 
 			# Caso o usuário digite um comando vazio, imprime o uso
-			decodificaComando('', automato)
+			decodificaComando('nada', automato)

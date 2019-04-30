@@ -15,7 +15,7 @@
 <!-- q0 -->
 <g id="node2" class="node">
 <title>q0</title>
-<ellipse fill="none" stroke="#ff0000" cx="63.4983" cy="-22.1984" rx="19.4965" ry="19.4965"/>
+<ellipse fill="none" stroke="#000000" cx="63.4983" cy="-22.1984" rx="19.4965" ry="19.4965"/>
 <text text-anchor="middle" x="63.4983" y="-18.4984" font-family="Times,serif" font-size="14.00" fill="#000000">q0</text>
 </g>
 <!-- &#45;&gt;q0 -->
@@ -74,8 +74,8 @@
 <!-- qf -->
 <g id="node5" class="node">
 <title>qf</title>
-<ellipse fill="none" stroke="#000000" cx="312.188" cy="-22.1984" rx="18.3625" ry="18.3625"/>
-<ellipse fill="none" stroke="#000000" cx="312.188" cy="-22.1984" rx="22.3986" ry="22.3986"/>
+<ellipse fill="none" stroke="#ff0000" cx="312.188" cy="-22.1984" rx="18.3625" ry="18.3625"/>
+<ellipse fill="none" stroke="#ff0000" cx="312.188" cy="-22.1984" rx="22.3986" ry="22.3986"/>
 <text text-anchor="middle" x="312.188" y="-18.4984" font-family="Times,serif" font-size="14.00" fill="#000000">qf</text>
 </g>
 <!-- q2&#45;&gt;qf -->
