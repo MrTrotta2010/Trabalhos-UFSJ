@@ -69,24 +69,47 @@ void imprimeLog(Configuracao *config, unsigned pagLidas, unsigned pagEscritas){
 	printf("Page Faults: %d\n", pageFault);
 }
 
-TabelaPagina inicializaTabela(Configuracao *config){
+void printTabela(TabelaPagina *tabelaPag, char titulo[256], int cor){
 
-	TabelaPagina tabPag;
+	if(cor) foreground(RED);
+	else foreground(BLUE);
 
-	tabPag.pagina = (Pagina *) malloc((config->tamMem/config->tamPag) * sizeof(Pagina));
-	tabPag.statusMemoria = (_Bool *) malloc(config->tamMem/config->tamPag * sizeof(_Bool));
-	tabPag.referenciado = (unsigned *) malloc(config->tamMem/config->tamPag * sizeof(unsigned));
-	tabPag.moldurasUsadas = 0;
-	tabPag.numMolduras = config->tamMem/config->tamPag;
+	if(titulo[0] != '0') printf("\n -- %s -- \n", titulo);
+	printf("\n");
+	
+	FORENORMAL_COLOR;
+	Pagina *j;
 
-	for(int i = 0; i < config->tamMem/config->tamPag; i++){
+	for(int i = 0; i < tabelaPag->numMolduras; i++){
 
-		tabPag.statusMemoria[i] = FALSE;
-		tabPag.referenciado[i] = 0;
-		inicializaPagina(&(tabPag.pagina[i]));
+		printf("|%d|-> ", i);
+
+		for(j = &(tabelaPag->pagina[i]); j->moldura != -1; j = j->prox){
+			
+			printf("[pV: %d - md: %d - i: %d]-> ", j->paginaVirtual, j->moldura, j->indiceFila);
+
+		}
+		printf("[vazio]-> null\n");
+
 	}
 
-
-	return tabPag;
 }
 
+void printMemoria(TabelaPagina *tabelaPag, char titulo[256], int cor){
+
+	if(cor) foreground(RED);
+	else foreground(BLUE);
+
+	if(titulo[0] != '0') printf("\n-- %s --\n", titulo);
+	FORENORMAL_COLOR;
+
+	printf("\n[");
+
+	for(int i = 0; i < tabelaPag->numMolduras; i++){
+
+		printf("%3d",tabelaPag->statusMemoria[i]);
+
+	}
+	printf(" ]\n\n");
+	//d();
+}

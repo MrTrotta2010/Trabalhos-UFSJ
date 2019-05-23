@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "colors.h"
+#include "cores.h"
 
 #define KB 1024
 #define TRUE 1
@@ -55,15 +55,39 @@ typedef struct {
 
 } Fila;
 
+/*ENTRADA E SAÍDA*/
+
 Configuracao* recebeConfig(int numArg, char **argv);
 
-_Bool configValida(Configuracao *config);
-
 void imprimeLog(Configuracao *config, unsigned pagLidas, unsigned pagEscritas);
+
+void printTabela(TabelaPagina *tabelaPag, char titulo[256], int cor);
+
+void printMemoria(TabelaPagina *tabelaPag, char titulo[256], int cor);
+
+/*TABELA DE PÁGINAS*/
 
 TabelaPagina inicializaTabela(Configuracao *config);
 
 void inicializaPagina(Pagina *pagina);
+
+Pagina * criaPagina();
+
+int posicaoMemoria(TabelaPagina *tabelaPag);
+	
+int PaginaVirtualQueTaNaMolduraQueVouLimparDaMemoria(Pagina *pagina, int moldura);
+
+void copiaPagina(Pagina *pagDestino, Pagina *pagFonte);
+
+unsigned retiraPagina(TabelaPagina *tabelaPag, Fila *filaPaginas, int substituicao);
+
+void inserePagina(TabelaPagina *tabelaPag, Fila *filaPaginas, unsigned molduraVaga, int substituicao, unsigned clock, unsigned indiceTabela, char rw, unsigned paginaVirtual);
+
+int isPageFault(TabelaPagina *tabelaPagina, Pagina *pagina, Fila *filaPaginas, int substituicao, unsigned paginaVirtual, unsigned clock, char rw);
+
+int memCheia(TabelaPagina *tabelaPagina, long unsigned tamMemoria);
+
+/*FILA DE PÁGINAS NA MEMÓRIA*/
 
 Fila *criaFila (unsigned tamanho);
 
@@ -73,6 +97,16 @@ void reorganizaFila (Fila *fila, unsigned posicao, _Bool referenciar);
 
 unsigned removeFila (Fila *fila, unsigned posicao);
 
-void copyPagina(Pagina *pagDestino, Pagina *pagFonte);
-
 void imprimeFila(Fila *fila);
+
+/*ALGORITMOS DE SUBSTITUIÇÃO*/
+
+unsigned lru(TabelaPagina * tabelaPagina);
+
+unsigned nru(TabelaPagina *tabelaPagina);
+
+unsigned segundaChance(TabelaPagina *tabelaPagina, Fila *filaPaginas);
+
+unsigned escolheMoldura(TabelaPagina *tabelaPagina, Fila *filaPaginas, int substituicao);
+
+void resetaReferenciado(TabelaPagina *tabelaPagina);
