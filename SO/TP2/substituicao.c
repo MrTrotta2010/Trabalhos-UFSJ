@@ -5,6 +5,7 @@ unsigned lru(TabelaPagina * tabelaPagina){
 	int lru = tabelaPagina->referenciado[0];
 	int moldura = 0;
 	
+	//busca pela página com o menor clock
 	for(int i = 0; i < tabelaPagina->numMolduras; i++){
 	
 		if(tabelaPagina->referenciado[i] < lru){
@@ -21,6 +22,7 @@ unsigned nru(TabelaPagina *tabelaPagina){
 
 	unsigned um = -1, dois = -1, tres = -1;
 
+	//busca pela pagina que pertence a menor classe
 	for(unsigned i = 0; i < tabelaPagina->numMolduras; i++ ){
 		
 		if (tabelaPagina->referenciado[i] == 0) return i;
@@ -47,6 +49,7 @@ unsigned segundaChance(TabelaPagina *tabelaPagina, Fila *filaPaginas){
 	
 	unsigned escolhido;
 
+	//busca pela pagina que não foi referenciada
 	for(unsigned i = 0; i < filaPaginas->final; i++){
 
 		if(!(filaPaginas->paginas[i].referenciado)){
@@ -57,7 +60,7 @@ unsigned segundaChance(TabelaPagina *tabelaPagina, Fila *filaPaginas){
 		}
 
 		else {
-
+			//caso referenciada, desrreferenciamos e é inserida no final da fila
 			reorganizaFila(filaPaginas, i, FALSE);
 			i--;
 		}
@@ -67,6 +70,7 @@ unsigned segundaChance(TabelaPagina *tabelaPagina, Fila *filaPaginas){
 
 }
 
+//retorna uma posição vaga na memória
 unsigned escolheMoldura(TabelaPagina *tabelaPagina, Fila *filaPaginas, int substituicao){
 
 	unsigned escolhido;
@@ -86,6 +90,7 @@ unsigned escolheMoldura(TabelaPagina *tabelaPagina, Fila *filaPaginas, int subst
 	return escolhido;
 }
 
+//zera todos os referenciados a cada determinado tempo
 void resetaReferenciado(TabelaPagina *tabelaPagina){
 	
 	for(int i = 0; i < tabelaPagina->numMolduras; i++ ){

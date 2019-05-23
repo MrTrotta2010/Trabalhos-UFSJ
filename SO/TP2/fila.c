@@ -1,5 +1,8 @@
 #include "tp2virtual.h"
 
+//Fila criada na implementação do Segunda_chance
+
+//cria fila
 Fila *criaFila (unsigned tamanho) {
 
 	Fila *fila = (Fila*)malloc(sizeof(Fila));
@@ -13,6 +16,7 @@ Fila *criaFila (unsigned tamanho) {
 
 }
 
+//insere uma pagina na fila
 void insereFila (Fila *fila, Pagina *pagina, _Bool referenciar) {
 
 	fila->paginas[fila->final].indiceTabela = pagina->indiceTabela; 
@@ -24,6 +28,7 @@ void insereFila (Fila *fila, Pagina *pagina, _Bool referenciar) {
 	fila->final++;
 }
 
+//reorganiza a fila quando uma pagina é referenciada
 void reorganizaFila (Fila *fila, unsigned posicao, _Bool referenciar) {
 
 	Pagina *aux = (Pagina*)malloc(sizeof(Pagina));
@@ -47,6 +52,7 @@ void reorganizaFila (Fila *fila, unsigned posicao, _Bool referenciar) {
 
 }
 
+//remove uma página da fila quando ela removida da tabela de páginas
 unsigned removeFila (Fila *fila, unsigned posicao) {
 
 	unsigned moldura = fila->paginas[posicao].moldura;
@@ -61,16 +67,5 @@ unsigned removeFila (Fila *fila, unsigned posicao) {
 	fila->final--;
 
 	return moldura;
-
-}
-
-void imprimeFila(Fila *fila){
-
-	printf("\nFila sg:\n");
-
-	for(unsigned i = 0; i < fila->final; i++){
-		printf("[pv: %d - i: %d - r: %d] -> ",fila->paginas[i].paginaVirtual, fila->paginas[i].indiceTabela, fila->paginas[i].referenciado);
-	}
-	printf("||\n\n");
 
 }
