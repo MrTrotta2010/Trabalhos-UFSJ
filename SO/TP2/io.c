@@ -1,5 +1,6 @@
 #include "tp2virtual.h"
 
+//recebe as configurações passadas por parametro
 Configuracao* recebeConfig(int numArg, char **argv){
 
 	Configuracao *config = (Configuracao*) malloc(sizeof(Configuracao));
@@ -55,18 +56,18 @@ Configuracao* recebeConfig(int numArg, char **argv){
 	return config;
 }
 
-
+//imprime a saida
 void imprimeLog(Configuracao *config, unsigned pagLidas, unsigned pagEscritas){
 	
-	printf("\nSimulação finalizada\n");
-	printf("Algoritmo de substituição: %s\n", config->nomeSubstituicao);
-	printf("Arquivo de entrada: %s\n", config->arqEntrada);
-	printf("Tamanho da memoria: %d KiB\n", config->tamMem);
-	printf("Tamanho das paginas: %d KiB\n", config->tamPag);
-	printf("Páginas lidas: %d\n", pagLidas);
-	printf("Páginas escritas: %d\n", pagEscritas);
-	printf("Page Hits: %d\n", pageHit);
-	printf("Page Faults: %d\n", pageFault);
+	printf(">> Simulação finalizada\n");
+	printf("-> Algoritmo de substituição: %s\n", config->nomeSubstituicao);
+	printf("-> Arquivo de entrada: %s\n", config->arqEntrada);
+	printf("-> Tamanho da memoria: %d KiB\n", config->tamMem);
+	printf("-> Tamanho das paginas: %d KiB\n", config->tamPag);
+	printf("-> Páginas lidas: %d\n", pagLidas);
+	printf("-> Páginas escritas: %d\n", pagEscritas);
+	printf("-> Page Hits: %d\n", pageHit);
+	printf("-> Page Faults: %d\n\n", pageFault);
 }
 
 void printTabela(TabelaPagina *tabelaPag, char titulo[256], int cor){
@@ -74,7 +75,7 @@ void printTabela(TabelaPagina *tabelaPag, char titulo[256], int cor){
 	if(cor) foreground(RED);
 	else foreground(BLUE);
 
-	if(titulo[0] != '0') printf("\n -- %s -- \n", titulo);
+	if(titulo[0] != '0') printf("\n*** %s ***\n", titulo);
 	printf("\n");
 	
 	FORENORMAL_COLOR;
@@ -82,14 +83,24 @@ void printTabela(TabelaPagina *tabelaPag, char titulo[256], int cor){
 
 	for(int i = 0; i < tabelaPag->numMolduras; i++){
 
-		printf("|%d|-> ", i);
+		printf("|%2d|", i);
+		foreground(YELLOW);
+		printf("-> ");
+		FORENORMAL_COLOR;
 
 		for(j = &(tabelaPag->pagina[i]); j->moldura != -1; j = j->prox){
-			
-			printf("[pV: %d - md: %d - i: %d]-> ", j->paginaVirtual, j->moldura, j->indiceFila);
-
+			printf("[pagV: %d - mold: %d]", j->paginaVirtual, j->moldura);
+			foreground(YELLOW);
+			printf("-> ");
+			FORENORMAL_COLOR;
 		}
-		printf("[vazio]-> null\n");
+		FORENORMAL_COLOR;
+		printf("[vazio]");
+		foreground(YELLOW);
+		printf("-> ");
+		FORENORMAL_COLOR;
+		printf("NULL\n");
+
 
 	}
 
@@ -100,7 +111,7 @@ void printMemoria(TabelaPagina *tabelaPag, char titulo[256], int cor){
 	if(cor) foreground(RED);
 	else foreground(BLUE);
 
-	if(titulo[0] != '0') printf("\n-- %s --\n", titulo);
+	if(titulo[0] != '0') printf("\n*** %s ***\n", titulo);
 	FORENORMAL_COLOR;
 
 	printf("\n[");
@@ -111,5 +122,4 @@ void printMemoria(TabelaPagina *tabelaPag, char titulo[256], int cor){
 
 	}
 	printf(" ]\n\n");
-	//d();
 }

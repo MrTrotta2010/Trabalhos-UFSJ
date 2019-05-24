@@ -12,8 +12,8 @@ unsigned pagEscritas;
 unsigned pageHit;
 unsigned pageFault;
 unsigned debug;
-unsigned escritasDisco;
 
+//guarda todas configurações para criação da tabela
 typedef struct {
 
 	int substituicao;
@@ -25,6 +25,7 @@ typedef struct {
 
 } Configuracao;
 
+//uma página da tabela de páginas
 typedef struct Pagina {
 
 	_Bool mudou;
@@ -42,12 +43,16 @@ typedef struct {
 
 	Pagina *pagina;
 	unsigned numMolduras;
+	//posiçoes usadas na memória/tabela
 	unsigned moldurasUsadas;
+	//representa os espaços cheios e vazios na memoria
 	_Bool *statusMemoria;
+	//representa as páginas referenciadas e não referenciadas da tabela
 	unsigned *referenciado;
 
 } TabelaPagina;
 
+//utilizada em Segunda_chance
 typedef struct {
 
 	Pagina *paginas;
