@@ -13,9 +13,9 @@ class JanelaPrincipal(Gtk.Window):
 		Gtk.Window.__init__(self, title="The World Of Wumpus")
 		#self.set_size_request(600, 400)
 
-		self.agente = Agente()
+		self.caverna = Caverna((3, 0))
 			
-		self.caverna = Caverna(self.agente.posicao)
+		self.agente = Agente(self.caverna.salas)
 
 		self.caverna.imprimeCaverna()
 
@@ -30,7 +30,6 @@ class JanelaPrincipal(Gtk.Window):
 
 		self.score = Gtk.Label()
 		self.score.set_justify(Gtk.Justification.CENTER)
-		self.score.set_markup('<big><b>Score:</b>\n'+str(self.agente.desempenho)+'</big>')
 
 		self.caixaInterna.pack_start(self.gridCaverna, True, True, 0)
 		self.caixaInterna.pack_start(self.score, True, True, 0)
@@ -54,10 +53,7 @@ class JanelaPrincipal(Gtk.Window):
 
 	def gerarMapas (self, override):
 
-		# if override:
-		# 	for linha in range(4):
-		# 		self.gridCaverna.remove_row(linha)
-		# 		self.gridAgente.remove_row(linha)
+		self.score.set_markup('<big><b>Score:</b>\n'+str(self.agente.desempenho)+'</big>\n'+self.agente.status)
 
 		for i in range(4):
 			for j in range(4):
@@ -75,10 +71,8 @@ class JanelaPrincipal(Gtk.Window):
 						imagem += 'brisa'
 
 					self.imagensCaverna[i][j].set_from_file(imagem+".png")
-					self.imagensAgente[i][j].set_from_file(imagem+".png")
 
 				else:
-					self.imagensAgente[i][j].set_from_file("Imagens/vazio.png")
 
 					if 'wumpus' in self.caverna.salas[i][j]:
 
@@ -120,18 +114,84 @@ class JanelaPrincipal(Gtk.Window):
 
 				if not override:
 					self.gridCaverna.attach(self.imagensCaverna[i][j], j, i, 1, 1)
+
+		for i in range(4):
+			for j in range(4):
+
+				imagem = 'Imagens/'
+
+				if 'agente' in self.agente.salasConhecidas[i][j]:
+					imagem += 'agente'
+					
+					if 'ouro' in self.agente.salasConhecidas[i][j]:
+						imagem += 'ouro'
+					if 'fedor' in self.agente.salasConhecidas[i][j]:
+						imagem += 'fedor'
+					if 'brisa' in self.agente.salasConhecidas[i][j]:
+						imagem += 'brisa'
+
+				else:
+
+					if 'wumpus' in self.agente.salasConhecidas[i][j]:
+
+						imagem += 'wumpus'
+
+						if 'ouro' in self.agente.salasConhecidas[i][j]:
+							imagem += 'ouro'
+						if 'brisa' in self.agente.salasConhecidas[i][j]:
+							imagem += 'brisa'
+
+					elif 'wumpus?' in self.agente.salasConhecidas[i][j]:
+
+						imagem += 'wumpus?'
+
+					elif 'ouro' in self.agente.salasConhecidas[i][j]:
+						
+						imagem += 'ouro'
+
+						if 'fedor' in self.agente.salasConhecidas[i][j]:
+							imagem += 'fedor'
+						if 'brisa' in self.agente.salasConhecidas[i][j]:
+							imagem += 'brisa'
+
+					elif 'poço' in self.agente.salasConhecidas[i][j]:
+
+						imagem += 'poço'
+
+						if 'fedor' in self.agente.salasConhecidas[i][j]:
+							imagem += 'fedor'
+
+					elif 'poço?' in self.agente.salasConhecidas[i][j]:
+
+						imagem += 'poço?'
+
+					else:
+
+						if 'fedor' in self.agente.salasConhecidas[i][j]:
+							imagem += 'fedor'
+						
+						if 'brisa' in self.agente.salasConhecidas[i][j]:
+							imagem += 'brisa'
+
+					if imagem == 'Imagens/':
+						imagem += 'vazio'
+
+				self.imagensAgente[i][j].set_from_file(imagem+".png")
+
+				if not override:
 					self.gridAgente.attach(self.imagensAgente[i][j], j, i, 1, 1)
 
 	def aoClick (self, widget):
 
 		if widget.get_label() == 'Rodar':
-			self.agente.andar(['direita', 'esquerda', 'cima', 'baixo'][random.randint(0,3)])
+			self.agente.acao()
 			self.caverna.atualizaAgente(self.agente.posicao)
 
 		else:
 			self.caverna.geraCaverna((3,0))
+			self.agente.resetaAgente(self.caverna.salas)
 		
-		self.caverna.imprimeCaverna()
+		self.agente.imprimeCaverna()
 		self.gerarMapas(True)
 		self.show_all()
 
