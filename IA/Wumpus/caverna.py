@@ -1,4 +1,5 @@
 import random
+
 class Caverna:
 
 	def __init__ (self, posicaoAgente):

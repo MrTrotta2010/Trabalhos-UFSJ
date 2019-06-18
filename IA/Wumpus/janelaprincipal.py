@@ -5,6 +5,7 @@ from gi.repository import Gtk, GdkPixbuf, Gdk
 from caverna import Caverna
 from agente import Agente
 import random
+from playsound import playsound
 
 class JanelaPrincipal(Gtk.Window):
 
@@ -12,6 +13,8 @@ class JanelaPrincipal(Gtk.Window):
 
 		Gtk.Window.__init__(self, title="The World Of Wumpus")
 		#self.set_size_request(600, 400)
+
+		self.status = 0
 
 		self.caverna = Caverna((3, 0))
 			
@@ -141,7 +144,7 @@ class JanelaPrincipal(Gtk.Window):
 						if 'brisa' in self.agente.salasConhecidas[i][j]:
 							imagem += 'brisa'
 
-					elif 'wumpus?' in self.agente.salasConhecidas[i][j]:
+					elif 'wumpus?' in self.agente.salasConhecidas[i][j] and '~w' not in self.agente.salasConhecidas[i][j]:
 
 						imagem += 'wumpus?'
 
@@ -161,7 +164,7 @@ class JanelaPrincipal(Gtk.Window):
 						if 'fedor' in self.agente.salasConhecidas[i][j]:
 							imagem += 'fedor'
 
-					elif 'poço?' in self.agente.salasConhecidas[i][j]:
+					elif 'poço?' in self.agente.salasConhecidas[i][j] and '~p' not in self.agente.salasConhecidas[i][j]:
 
 						imagem += 'poço?'
 
@@ -174,7 +177,12 @@ class JanelaPrincipal(Gtk.Window):
 							imagem += 'brisa'
 
 					if imagem == 'Imagens/':
-						imagem += 'vazio'
+
+						if 'visitada' in self.agente.salasConhecidas[i][j]:
+							imagem += 'vazio'
+	
+						else:
+							imagem += 'vazio?'
 
 				self.imagensAgente[i][j].set_from_file(imagem+".png")
 
@@ -184,12 +192,23 @@ class JanelaPrincipal(Gtk.Window):
 	def aoClick (self, widget):
 
 		if widget.get_label() == 'Rodar':
-			self.agente.acao()
-			self.caverna.atualizaAgente(self.agente.posicao)
+
+			# playsound('Audio/wilhelm_scream.mp3')
+
+			if self.status == 0:
+
+				self.status = self.agente.acao()
+
+				# for sala in caminho:
+				# 	lixo, self.status = self.agente.acao(False)
+				# 	self.agente.posicao = sala
+
+				self.caverna.atualizaAgente(self.agente.posicao)
 
 		else:
 			self.caverna.geraCaverna((3,0))
 			self.agente.resetaAgente(self.caverna.salas)
+			self.status = 0
 		
 		self.agente.imprimeCaverna()
 		self.gerarMapas(True)
@@ -198,3 +217,4 @@ class JanelaPrincipal(Gtk.Window):
 	def main(self):
 
 		Gtk.main()
+		
