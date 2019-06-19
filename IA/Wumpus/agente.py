@@ -1,6 +1,6 @@
 import math
-from playsound import playsound
 import _thread as thread
+from playsound import playsound 
 
 class Agente:
 

@@ -233,15 +233,4 @@ class JanelaPrincipal(Gtk.Window):
 
 	def main(self):
 
-		thread.start_new_thread(soundFX, ('Audio/March of the Spoons.mp3', True))
-
 		Gtk.main()
-		
-def soundFX(arquivo, loop):
-
-	if loop:
-		while (True):
-			playsound(arquivo)
-
-	else:
-		playsound (arquivo)
