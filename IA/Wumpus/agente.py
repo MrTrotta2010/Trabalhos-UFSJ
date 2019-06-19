@@ -1,4 +1,6 @@
-from queue import Queue
+import math
+from playsound import playsound
+import _thread as thread
 
 class Agente:
 
@@ -8,29 +10,29 @@ class Agente:
 
 	def resetaAgente (self, caverna):
 
-		self.flecha = True
+		self.tiro = True # Munição do agente
+		self.matar = False # Indica se o agente quer matar o Wumpus
 
 		self.desempenho = 0
 
-		self.salasConhecidas = [[[] for i in range(4)] for j in range(4)]
+		self.salasConhecidas = [[[] for i in range(4)] for j in range(4)] # Salas que vão sendo conhecidas gradualmente
 		self.salasConhecidas[3][0].append('agente')
 		
-		self.caverna = caverna
-		# self.visitados = [][]
+		self.caverna = caverna # Uma cópia da caverna original
 
-		self.filaInferencias = []
+		self.posicao = (3, 0) # A posição do agente, inicialmente (3, 0)
+		self.posicaoWumpus = -1 # A posição do Wumpus, inicialmente desconhecida
 
-		self.posicao = (3, 0)
+		self.direcao = 'direita' # Posição do agente, inicialmente direita
 
-		self.direcao = 'direita'
+		self.status = 'Aguardando' # Status a ser exibido na interface, inicialmente, 'Aguardando...'
 
-		self.status = 'Aguardando'
+		self.achouWumpus = False # Indica se ele já encontrou a localização do Wumpus
 
-		self.achouWumpus = False
+		self.caminho = [] # Caminho que ele deve percorrer a cada iteração. Será alterado durante a execução
+		self.indiceCaminho = 0 # Indice no caminho no qual o agente se encontra
 
-		self.caminho = []
-		self.indiceCaminho = 0
-
+	# Recebe um vetor de caminhos, calcula seus custos e os ordena crescentemente
 	def ordenaCustos (self, destinos):
 
 		custos = []
@@ -39,8 +41,6 @@ class Agente:
 		for sala in destinos:
 
 			custos.append(0)
-
-			print('Posições: ', sala, self.posicao)
 
 			if sala[2] == 'cima': #Cima
 
@@ -76,12 +76,9 @@ class Agente:
 
 			i += 1
 
-		print('Custos: ', custos)
-
-		print('destinos antes : ', destinos)
 		return [x for _,x in sorted(zip(custos, destinos))], sorted(custos)
-		#print('destinos depois: ', destinos)
 
+	# Recebe uma posição de destino e um dicionário de movimentações e calcula o custo do caminho até a posição atual do agente
 	def calculaCusto (self, caminhos, destino):
 
 		custo = 0
@@ -92,7 +89,6 @@ class Agente:
 
 			custo += 1
 
-			print('atual: ', atual)
 			direcao = caminhos[atual][2]
 
 			if atual[2] == 'cima': #Cima
@@ -131,11 +127,11 @@ class Agente:
 
 		return custo
 
+	# Recebe uma posição de destino e um dicionário de movimentações e constrói o caminho até a posição atual do agente
 	def calculaCaminho (self, caminhos, destino):
 
 		atual = destino
 		caminho = []
-		print ('!!!!!!!', atual)
 
 		while atual != (self.posicao[0], self.posicao[1], self.direcao):
 
@@ -146,161 +142,257 @@ class Agente:
 
 		return caminho
 
-	# def proximoPasso(self):
-
-	# 	i = self.posicao[0]
-	# 	j = self.posicao[1]
-
-	# 	destinos = []
-	# 	print("proximo")
-
-	# 	if i > 0:
-	# 		destinos.append((i-1, j, 'cima'))
-		
-	# 	if i < 3:
-	# 		destinos.append((i+1, j, 'baixo'))
-		
-	# 	if j > 0:
-	# 		destinos.append((i, j-1, 'esquerda'))
-		
-	# 	if j < 3:
-	# 		destinos.append((i, j+1, 'direita'))
-
-	# 	destinos, custos = self.ordenaCustos(destinos)
-	# 	print('destinos depois', destinos, custos)
-
-	# 	destino = -1
-
-	# 	for d in range(len(destinos)):
-
-	# 		i = destinos[d][0]
-	# 		j = destinos[d][1]
-	# 		print('i j', i, j)
-
-	# 		if 'visitada' not in self.salasConhecidas[i][j]:
-
-	# 			if '~w' in self.salasConhecidas[i][j] and '~p' in self.salasConhecidas[i][j]:
-	# 				destino = d
-	# 				break
-
-	# 		else:
-	# 			if destino == -1:
-	# 				destino = d
-
-	# 	print('Vai andar para ', destinos[destino])
-
-	# 	return destinos[destino], custos[destino]
-
+	# Aplica uma busca em largura a partir da posição atual do agente para descobrir todos os caminhos que levam a salas ainda não visitadas
 	def buscaLargura (self):
 
 		i = self.posicao[0]
 		j = self.posicao[1]
 
-		borda = Queue()
+		borda = []
 		destinos= []
+		visitados = []
 		vertices = {} # sala : pai
 
-		borda.put((i, j, self.direcao))
+		borda.append((i, j, self.direcao))
 
-		while not borda.empty():
+		# Enquanto a borda não está vazia, enfileira vértices não visitados, lista possíveis destinos para o agente e contrói um dicionário que mostra as movimentações realizadas entre cada sala
+		while len(borda) > 0:
 
-			sala = borda.get()
+			sala = borda.pop(0)
 
-			if sala[0] > 0:
-				if (sala[0]-1, sala[1]) not in vertices.keys():
-					vertices[(sala[0]-1, sala[1], 'cima')] = (sala[0], sala[1], sala[2])
-			
-				if 'visitada' in self.salasConhecidas[sala[0]-1][sala[1]]:
-					borda.put((sala[0]-1, sala[1], 'cima'))
-					print('1')
+			if sala not in visitados:
 
-				elif '~w' in self.salasConhecidas[sala[0]-1][sala[1]] and '~p' in self.salasConhecidas[sala[0]-1][sala[1]]:
-					destinos.append((sala[0]-1, sala[1], 'cima'))
+				visitados.append(sala)
 
-			if sala[0] < 3:
-				if (sala[0]+1, sala[1]) not in vertices.keys():
-					vertices[(sala[0]+1, sala[1], 'baixo')] = (sala[0], sala[1], sala[2])
+				if sala[0] > 0:
+					if (sala[0]-1, sala[1], 'cima') not in vertices.keys():
+						vertices[(sala[0]-1, sala[1], 'cima')] = (sala[0], sala[1], sala[2])
+				
+					if 'visitada' in self.salasConhecidas[sala[0]-1][sala[1]]:
+						borda.append((sala[0]-1, sala[1], 'cima'))
 
-				if 'visitada' in self.salasConhecidas[sala[0]+1][sala[1]]:
-					borda.put((sala[0]+1, sala[1], 'baixo'))
-					print('2')
+					elif '~w' in self.salasConhecidas[sala[0]-1][sala[1]] and '~p' in self.salasConhecidas[sala[0]-1][sala[1]]:
+						destinos.append((sala[0]-1, sala[1], 'cima'))
 
-				elif '~w' in self.salasConhecidas[sala[0]+1][sala[1]] and '~p' in self.salasConhecidas[sala[0]+1][sala[1]]:
-					destinos.append((sala[0]+1, sala[1], 'baixo'))
-			
-			if sala[1] > 0:
-				if (sala[0], sala[1]-1) not in vertices.keys():
-					vertices[(sala[0], sala[1]-1, 'esquerda')] = (sala[0], sala[1], sala[2])
+				if sala[0] < 3:
+					if (sala[0]+1, sala[1], 'baixo') not in vertices.keys():
+						vertices[(sala[0]+1, sala[1], 'baixo')] = (sala[0], sala[1], sala[2])
 
-				if 'visitada' in self.salasConhecidas[sala[0]][sala[1]-1]:
-					borda.put((sala[0], sala[1]-1, 'esquerda'))
-					print('3')
+					if 'visitada' in self.salasConhecidas[sala[0]+1][sala[1]]:
+						borda.append((sala[0]+1, sala[1], 'baixo'))
 
-				elif '~w' in self.salasConhecidas[sala[0]][sala[1]-1] and '~p' in self.salasConhecidas[sala[0]][sala[1]-1]:
-					destinos.append((sala[0], sala[1]-1, 'esquerda'))
-			
-			if sala[1] < 3:
-				if (sala[0], sala[1]+1) not in vertices.keys():
-					vertices[(sala[0], sala[1]+1, 'direita')] = (sala[0], sala[1], sala[2])
+					elif '~w' in self.salasConhecidas[sala[0]+1][sala[1]] and '~p' in self.salasConhecidas[sala[0]+1][sala[1]]:
+						destinos.append((sala[0]+1, sala[1], 'baixo'))
+				
+				if sala[1] > 0:
+					if (sala[0], sala[1]-1, 'esquerda') not in vertices.keys():
+						vertices[(sala[0], sala[1]-1, 'esquerda')] = (sala[0], sala[1], sala[2])
 
-				if 'visitada' in self.salasConhecidas[sala[0]][sala[1]+1]:
-					borda.put((sala[0], sala[1]+1, 'direita'))
-					print('4')
+					if 'visitada' in self.salasConhecidas[sala[0]][sala[1]-1]:
+						borda.append((sala[0], sala[1]-1, 'esquerda'))
 
-				elif '~w' in self.salasConhecidas[sala[0]][sala[1]+1] and '~p' in self.salasConhecidas[sala[0]][sala[1]+1]:
-					destinos.append((sala[0], sala[1]+1, 'direita'))
+					elif '~w' in self.salasConhecidas[sala[0]][sala[1]-1] and '~p' in self.salasConhecidas[sala[0]][sala[1]-1]:
+						destinos.append((sala[0], sala[1]-1, 'esquerda'))
+				
+				if sala[1] < 3:
+					if (sala[0], sala[1]+1, 'direita') not in vertices.keys():
+						vertices[(sala[0], sala[1]+1, 'direita')] = (sala[0], sala[1], sala[2])
 
-			# if len(destinos) > 0:
-			# 	break
+					if 'visitada' in self.salasConhecidas[sala[0]][sala[1]+1]:
+						borda.append((sala[0], sala[1]+1, 'direita'))
 
-		print('vértices\n', vertices)
-		print('destinos\n', destinos)
+					elif '~w' in self.salasConhecidas[sala[0]][sala[1]+1] and '~p' in self.salasConhecidas[sala[0]][sala[1]+1]:
+						destinos.append((sala[0], sala[1]+1, 'direita'))
 
 		return vertices, destinos
 
-	def proximoPasso(self):
+	# Realiza uma busca em largura para encontrar o primeiro caminho até o Wumpus, que não passe por nenhum poço
+	def calculaCaminhoWumpus (self):
+
+		caminho = []
+
+		# Se a posição do Wumpus não é conhecida
+		if self.posicaoWumpus == -1:
+
+			i = 0
+
+			while i < 4:
+				for j in range(4):
+
+					# Escolhe a primeira posição onde o Wumpus pode estar
+					if 'wumpus?' in self.salasConhecidas[i][j]:
+						self.posicaoWumpus = (i, j)
+						i = 5
+						break
+
+				i += 1
 
 		i = self.posicao[0]
 		j = self.posicao[1]
 
+		borda = []
+		visitados = []
+		vertices = {} # sala : pai
+
+		borda.append((i, j, self.direcao))
+
+		while len(borda) > 0:
+
+			sala = borda.pop(0)
+
+			if sala not in visitados:
+
+				visitados.append(sala)
+
+				if sala[0] > 0:
+					if (sala[0]-1, sala[1], 'cima') not in vertices.keys():
+						vertices[(sala[0]-1, sala[1], 'cima')] = (sala[0], sala[1], sala[2])
+				
+					if (sala[0]-1, sala[1]) == self.posicaoWumpus:
+						destino = sala
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]-1][sala[1]] and '~p' in self.salasConhecidas[sala[0]-1][sala[1]] and 'visitada' in self.salasConhecidas[sala[0]-1][sala[1]]:
+						borda.append((sala[0]-1, sala[1], 'cima'))
+
+				if sala[0] < 3:
+					if (sala[0]+1, sala[1], 'baixo') not in vertices.keys():
+						vertices[(sala[0]+1, sala[1], 'baixo')] = (sala[0], sala[1], sala[2])
+				
+					if (sala[0]+1, sala[1]) == self.posicaoWumpus:
+						destino = sala
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]+1][sala[1]] and '~p' in self.salasConhecidas[sala[0]+1][sala[1]] and 'visitada' in self.salasConhecidas[sala[0]+1][sala[1]]:
+						borda.append((sala[0]+1, sala[1], 'baixo'))
+				
+				if sala[1] > 0:
+					if (sala[0], sala[1]-1, 'esquerda') not in vertices.keys():
+						vertices[(sala[0], sala[1]-1, 'esquerda')] = (sala[0], sala[1], sala[2])
+				
+					if (sala[0], sala[1]-1) == self.posicaoWumpus:
+						destino = sala
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]][sala[1]-1] and '~p' in self.salasConhecidas[sala[0]][sala[1]-1] and 'visitada' in self.salasConhecidas[sala[0]][sala[1]-1]:
+						borda.append((sala[0], sala[1]-1, 'esquerda'))
+				
+				if sala[1] < 3:
+					if (sala[0], sala[1]+1, 'direita') not in vertices.keys():
+						vertices[(sala[0], sala[1]+1, 'direita')] = (sala[0], sala[1], sala[2])
+				
+					if (sala[0], sala[1]+1) == self.posicaoWumpus:
+						destino = sala
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]][sala[1]+1] and '~p' in self.salasConhecidas[sala[0]][sala[1]+1] and 'visitada' in self.salasConhecidas[sala[0]][sala[1]+1]:
+						borda.append((sala[0], sala[1]+1, 'direita'))
+
+		# Com o destino definido, constrói o caminho do agente até a sala desejada
+		caminho = self.calculaCaminho(vertices, destino)
+
+		return caminho
+
+	# Realiza uma busca em largura para encontrar o primeiro caminho até alguma sala não visitada, ignorando que nela possa haver um poço ou Wumpus
+	def calculaCaminhoChute (self):
+
+		caminho = []
+
+		i = self.posicao[0]
+		j = self.posicao[1]
+
+		borda = []
+		visitados = []
+		vertices = {} # sala : pai
+
+		borda.append((i, j, self.direcao))
+
+		while len(borda) > 0:
+
+			sala = borda.pop(0)
+
+			if sala not in visitados:
+
+				visitados.append(sala)
+
+				if sala[0] > 0:
+					if (sala[0]-1, sala[1], 'cima') not in vertices.keys():
+						vertices[(sala[0]-1, sala[1], 'cima')] = (sala[0], sala[1], sala[2])
+				
+					if 'visitada' not in self.salasConhecidas[sala[0]-1][sala[1]]:
+						destino = (sala[0]-1, sala[1], 'cima')
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]-1][sala[1]] and '~p' in self.salasConhecidas[sala[0]-1][sala[1]] and 'visitada' in self.salasConhecidas[sala[0]-1][sala[1]]:
+						borda.append((sala[0]-1, sala[1], 'cima'))
+
+				if sala[0] < 3:
+					if (sala[0]+1, sala[1], 'baixo') not in vertices.keys():
+						vertices[(sala[0]+1, sala[1], 'baixo')] = (sala[0], sala[1], sala[2])
+				
+					if 'visitada' not in self.salasConhecidas[sala[0]+1][sala[1]]:
+						destino = (sala[0]+1, sala[1], 'baixo')
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]+1][sala[1]] and '~p' in self.salasConhecidas[sala[0]+1][sala[1]] and 'visitada' in self.salasConhecidas[sala[0]+1][sala[1]]:
+						borda.append((sala[0]+1, sala[1], 'baixo'))
+				
+				if sala[1] > 0:
+					if (sala[0], sala[1]-1, 'esquerda') not in vertices.keys():
+						vertices[(sala[0], sala[1]-1, 'esquerda')] = (sala[0], sala[1], sala[2])
+				
+					if 'visitada' not in self.salasConhecidas[sala[0]][sala[1]-1]:
+						destino = (sala[0], sala[1]-1, 'esquerda')
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]][sala[1]-1] and '~p' in self.salasConhecidas[sala[0]][sala[1]-1] and 'visitada' in self.salasConhecidas[sala[0]][sala[1]-1]:
+						borda.append((sala[0], sala[1]-1, 'esquerda'))
+				
+				if sala[1] < 3:
+					if (sala[0], sala[1]+1, 'direita') not in vertices.keys():
+						vertices[(sala[0], sala[1]+1, 'direita')] = (sala[0], sala[1], sala[2])
+				
+					if 'visitada' not in self.salasConhecidas[sala[0]][sala[1]+1]:
+						destino = (sala[0], sala[1]+1, 'direita')
+						break
+
+					elif '~w' in self.salasConhecidas[sala[0]][sala[1]+1] and '~p' in self.salasConhecidas[sala[0]][sala[1]+1] and 'visitada' in self.salasConhecidas[sala[0]][sala[1]+1]:
+						borda.append((sala[0], sala[1]+1, 'direita'))
+
+		# Com o destino definido, constrói o caminho do agente até a sala desejada
+		caminho = self.calculaCaminho(vertices, destino)
+
+		return caminho
+
+	# Calcula o menor caminho até uma sala não conhecida e segura (sem suspeita de poço ou Wumpus)
+	def proximoPasso(self):
+
+		self.status = 'Pensando...'
+		
+		i = self.posicao[0]
+		j = self.posicao[1]
+
+		# Os possíveis destinos são calculados utilizando uma busca em largura
 		caminhos, destinos = self.buscaLargura()
 
 		custos = []
 
 		for sala in destinos:
 
+			# Calcula o custo de cada caminho
 			custos.append(self.calculaCusto(caminhos, sala))
 
-		print ('Custos ', custos)
+		if len(destinos) > 0:
+			
+			# Retorna o menor caminho
+			destino = [x for _,x in sorted(zip(custos, destinos))][0]
+			return self.calculaCaminho(caminhos, destino)
 
-		destino = [x for _,x in sorted(zip(custos, destinos))][0]
+		# Caso não haja nenhum possível destino, retorna -1, indicando que o agente precisará chutar
+		return -1
 
-		print ('Destino ', destino)
-
-		return self.calculaCaminho(caminhos, destino)
-
-	# def andar (self):
-
-	# 	print(self.direcao)
-
-	# 	i = self.posicao[0]
-	# 	j = self.posicao[1]
-
-	# 	destino, custo = self.proximoPasso()
-
-	# 	self.posicao = (destino[0], destino[1])
-
-	# 	self.virar(destino[2], custo)
-
-	# 	self.salasConhecidas[i][j].remove('agente') 
-	# 	self.salasConhecidas[self.posicao[0]][self.posicao[1]].append('agente') 
-		
-	# 	self.status = 'Andou'
-	# 	self.desempenho -= 1
-
+	# Recebe a posição adjacente para a qual o agente deve se locomover, realiza a movimentação e modifica o desempenho do agente
 	def andar (self, destino):
-
-		print ('Destino ', destino)
 
 		direcao = destino[2]
 
@@ -342,6 +434,10 @@ class Agente:
 
 		self.salasConhecidas[self.posicao[0]][self.posicao[1]].remove('agente') 
 
+		self.status = ''
+		if self.direcao != direcao: self.status += 'Virou para '+direcao+'\n'
+		self.status += 'Andou!'
+
 		self.posicao = (destino[0], destino[1], destino[2])
 		self.direcao = destino[2]
 		self.desempenho -= custo
@@ -349,18 +445,44 @@ class Agente:
 
 		self.salasConhecidas[self.posicao[0]][self.posicao[1]].append('agente')
 		
-	def virar (self, direcao, custo):
-
-		self.direcao = direcao
-
-		self.desempenho -= custo
-		self.status = 'Virou para' + direcao
-
+	# Agarra o ouro, altera o desempenho e toca a fanfarra da vitória
 	def agarrar(self):
 
 		self.desempenho += 1000
-		self.status = 'Agarrou!'
 
+		self.status = 'Agarrou!'
+		thread.start_new_thread(soundFX, ('Audio/zelda_fanfarre.mp3', False))
+
+	# Atira no Wumpus
+	def atirar(self):
+		
+		self.status = 'Atirou!'
+		self.desempenho -= 10
+		self.tiro = False
+
+		# Se o agente estiver na mesma linha ou coluna que o Wumpus, acertará o tiro
+		if self.posicaoWumpus != -1:
+
+			if self.posicao[1] == self.posicaoWumpus[1]:
+				remove(self.caverna[self.posicaoWumpus[0]][self.posicaoWumpus[1]], 'wumpus')
+				self.caverna[self.posicaoWumpus[0]][self.posicaoWumpus[1]].append('wumpusmorto')
+				remove(self.salasConhecidas[self.posicaoWumpus[0]][self.posicaoWumpus[1]], 'wumpus')
+				self.salasConhecidas[self.posicaoWumpus[0]][self.posicaoWumpus[1]].append('wumpusmorto')
+				self.salasConhecidas[self.posicaoWumpus[0]][self.posicaoWumpus[1]].append('~w')
+				thread.start_new_thread(soundFX, ('Audio/wilhelm_scream.mp3', False))
+
+			if self.posicao[0] == self.posicaoWumpus[0]:
+				remove(self.caverna[self.posicaoWumpus[0]][self.posicaoWumpus[1]], 'wumpus')
+				self.caverna[self.posicaoWumpus[0]][self.posicaoWumpus[1]].append('wumpusmorto')
+				remove(self.salasConhecidas[self.posicaoWumpus[0]][self.posicaoWumpus[1]], 'wumpus')
+				self.salasConhecidas[self.posicaoWumpus[0]][self.posicaoWumpus[1]].append('wumpusmorto')
+				self.salasConhecidas[self.posicaoWumpus[0]][self.posicaoWumpus[1]].append('~w')
+				thread.start_new_thread(soundFX, ('Audio/wilhelm_scream.mp3', False))
+
+		else:
+			print ('Não sei cadê o bixo :(')
+
+	# Recebe um status interrogativo e verifica se sua versão negativa está na posição (i, j) da caverna
 	def verificaIncerteza (self, status, i, j):
 
 		if status == 'wumpus?':
@@ -377,6 +499,24 @@ class Agente:
 
 		return True
 
+	# Remove um determinado estatus de todas as salas conhecidas, além de assegurar asserções sobre a posição o Wumpus
+	def removeIncerteza(self, status):
+
+		for i in range(4):
+			for j in range(4):
+				if status in self.salasConhecidas[i][j]:
+					self.salasConhecidas[i][j].remove(status)
+
+				if 'wumpus' not in self.salasConhecidas[i][j]:
+					
+					if status == 'wumpus?':
+						self.achouWumpus = True
+						adiciona(self.salasConhecidas[i][j], '~w')
+
+				else:
+					self.posicaoWumpus = (i, j)
+
+	# Realiza inferencias sobre os arredores de uma determinada sala
 	def inferirSalas(self, status):
 		
 		i = self.posicao[0]
@@ -413,6 +553,7 @@ class Agente:
 			if self.verificaIncerteza(status, i, j-1):
 				adiciona(self.salasConhecidas[i][j-1], status)
 
+	# Tenta descobrir a poição do Wumpus ou de um poço, a partir de uma posição com fedor ou brisa, dadas suas diagonais conhecidas
 	def infereDiagonais (self, status):
 
 		i = self.posicao[0]
@@ -421,28 +562,20 @@ class Agente:
 		diagonais = [0, 0, 0, 0]
 
 		#cima esquerda
-		try:
+		if i > 0 and j > 0:
 			diagonais[0] = (i-1, j-1, self.salasConhecidas[i-1][j-1])
-		except:
-			pass
 
 		#cima direita
-		try:
+		if i > 0 and j < 3:
 			diagonais[1] = (i-1, j+1, self.salasConhecidas[i-1][j+1])
-		except:
-			pass
 
 		#baixo esquerda
-		try:
+		if i < 3 and j > 0:
 			diagonais[2] = (i+1, j-1, self.salasConhecidas[i+1][j-1])
-		except:
-			pass
 
 		#baixo direita
-		try:
+		if i < 3 and j < 3:
 			diagonais[3] = (i+1, j+1, self.salasConhecidas[i+1][j+1])
-		except:
-			pass
 
 		if not self.achouWumpus and status == 'fedor':
 
@@ -510,10 +643,8 @@ class Agente:
 					adiciona(self.salasConhecidas[i+1][j], 'poço')
 					remove(self.salasConhecidas[i+1][j], 'poço?')
 
+	# Função na qual o agente decide o que fazer: calcular caminho, movimentar, agarra o ouro, matar o wumpus, chutar...
 	def acao (self):
-
-		print("POSIÇÃO 0 ",self.posicao[0])
-		print("POSIÇÃO 1 ",self.posicao[1])
 
 		i = self.posicao[0]
 		j = self.posicao[1]
@@ -522,31 +653,51 @@ class Agente:
 
 		sala = self.caverna[i][j]
 
+		# Verifica os atributos na sala
+
+		# A sala não tem nada
 		if len(sala) == 0:
-			print("NADA")
 			adiciona(self.salasConhecidas[i][j], '~w')
 			adiciona(self.salasConhecidas[i][j], '~p')
+			remove(self.salasConhecidas[i][j], 'wumpus?')
+			remove(self.salasConhecidas[i][j], 'poço?')
 			self.inferirSalas('~w')
 			self.inferirSalas('~p')
 
 		elif 'poço' in sala or 'wumpus' in sala:
 			
-			print("MORREU")
-			return None, -1
+			self.status = 'Morreu!!'
+			self.desempenho -= 1000
 
+			self.salasConhecidas[self.posicao[0]][self.posicao[1]].remove('agente')
+			self.caverna[self.posicao[0]][self.posicao[1]].remove('agente')
+
+			thread.start_new_thread(soundFX, ('Audio/goofy_yell.mp3', False))
+
+			if 'poço' in sala:
+				adiciona(self.salasConhecidas[self.posicao[0]][self.posicao[1]], 'poço')
+				remove(self.salasConhecidas[self.posicao[0]][self.posicao[1]], 'poço?')
+
+			else:
+				adiciona(self.salasConhecidas[self.posicao[0]][self.posicao[1]], 'wumpus')
+				remove(self.salasConhecidas[self.posicao[0]][self.posicao[1]], 'wumpus?')
+
+			return -1
 
 		elif 'ouro' in sala:
 
-			print("OURO")
 			adiciona(self.salasConhecidas[i][j], 'ouro')
 			self.agarrar()
-			return None, 1
+			return 1
 
+		# Se não achou o ouro e nem morreu, faz algumas inferências
 		else:
 
-			if 'fedor' in sala:
+			remove(self.salasConhecidas[i][j], 'wumpus?')
+			remove(self.salasConhecidas[i][j], 'poço?')
 
-				print("FEDOR")
+			if 'fedor' in sala: # Infere possíveis localizações do Wumpus
+
 				adiciona(self.salasConhecidas[i][j], 'fedor')
 				adiciona(self.salasConhecidas[i][j], '~w')
 				self.inferirSalas('wumpus?')
@@ -556,9 +707,8 @@ class Agente:
 				adiciona(self.salasConhecidas[i][j], '~w')
 				self.inferirSalas('~w')
 
-			if 'brisa' in sala:
+			if 'brisa' in sala: # Infere possíveis localizações dos poços
 
-				print("brisa")
 				adiciona(self.salasConhecidas[i][j], 'brisa')
 				adiciona(self.salasConhecidas[i][j], '~p')
 				self.inferirSalas('poço?')
@@ -568,17 +718,35 @@ class Agente:
 				adiciona(self.salasConhecidas[i][j], '~p')
 				self.inferirSalas('~p')
 
-			# self.salasConhecidas[self.posicao[0]][self.posicao[1]].append('nada')
-
+		# Caso tenha percorrido todo o caminho calculado
 		if self.indiceCaminho == len(self.caminho):
-			self.caminho = self.proximoPasso()
-			self.indiceCaminho = 0
-			print('Caminho', self.caminho)
 
+			# E não tenha que matar o Wumpus, calcula outro caminho
+			if not self.matar:
+				self.caminho = self.proximoPasso()
+				self.indiceCaminho = 0
+		
+			# Se não, significa que precisa atirar no Wumpus
+			else:
+				self.atirar()
+				self.matar = False
+
+			# Se não houver nenhum caminho a ser seguido
+			if self.caminho == -1:
+
+				# E o agente tem munição, tentará matar o Wumpus
+				if self.tiro:
+					self.matar = True
+					self.caminho = self.calculaCaminhoWumpus()
+
+				# Do contrário, arriscará uma movimentação incerta
+				else:
+					self.status = 'Chutando!'
+					self.caminho = self.calculaCaminhoChute()
+
+		# Se o caminho ainda não acabou, continua percorrendo
 		else:
-			print('self.caminho ', self.caminho)
 			self.andar(self.caminho[self.indiceCaminho])
-			print ('ANDOU')
 
 		return 0
 				
@@ -590,21 +758,27 @@ class Agente:
 
 		print ('')
 
-	def removeIncerteza(self, status):
-
-		for i in range(4):
-			for j in range(4):
-				if status in self.salasConhecidas[i][j]:
-					self.salasConhecidas[i][j].remove(status)
-
-				if status == 'wumpus?' and 'wumpus' not in self.salasConhecidas[i][j]:
-					self.achouWumpus = True
-					adiciona(self.salasConhecidas[i][j], '~w')
+# Funções de manipulação de listas
 
 def adiciona (lista, elemento):
 	if elemento not in lista:
-		lista.append(elemento)
+
+		if elemento == 'wumpus': #Pequena trapacinha
+			if 'wumpusmorto' not in lista:
+				lista.append(elemento)
+
+		else:
+			lista.append(elemento)
 
 def remove (lista, elemento):
 	if elemento in lista:
 		lista.remove(elemento)
+
+def soundFX(arquivo, loop):
+
+	if loop:
+		while (True):
+			playsound(arquivo)
+
+	else:
+		playsound (arquivo)

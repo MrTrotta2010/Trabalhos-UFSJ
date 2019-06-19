@@ -7,38 +7,49 @@ from agente import Agente
 import random
 from playsound import playsound
 
+import _thread as thread
+
 class JanelaPrincipal(Gtk.Window):
 
-	def __init__ (self):
+	def __init__ (self, debug):
 
 		Gtk.Window.__init__(self, title="The World Of Wumpus")
 		#self.set_size_request(600, 400)
 
 		self.status = 0
 
-		self.caverna = Caverna((3, 0))
+		self.caverna = Caverna((3, 0), debug)
 			
 		self.agente = Agente(self.caverna.salas)
-
-		self.caverna.imprimeCaverna()
 
 		self.caixa = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 		self.add(self.caixa)
 
 		self.caixaInferior = Gtk.Box()
-		self.caixaInterna = Gtk.Box(spacing=20)
+		self.caixaInterna = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
 		self.gridCaverna = Gtk.Grid()
 		self.gridAgente = Gtk.Grid()
 
 		self.score = Gtk.Label()
-		self.score.set_justify(Gtk.Justification.CENTER)
+		self.score.set_justify(Gtk.Justification.FILL)
 
-		self.caixaInterna.pack_start(self.gridCaverna, True, True, 0)
+		self.wrapper = Gtk.Fixed()
+		self.wrapper.put(self.gridCaverna, 0, 0)
+		self.wrapper.put(self.caixaInterna, 430, 140)
+		self.wrapper.put(self.gridAgente, 570, 0)
+
 		self.caixaInterna.pack_start(self.score, True, True, 0)
-		self.caixaInterna.pack_start(self.gridAgente, True, True, 0)
+		
+		# self.caixaInterna.pack_start(self.gridCaverna, True, True, 0)
+		# self.caixaInterna.pack_start(Gtk.Label(' '), True, True, 0)
+		# self.caixaInterna.pack_start(self.score, True, True, 0)
+		# self.caixaInterna.pack_start(Gtk.Label(' '), True, True, 0)
+		# self.caixaInterna.pack_start(self.wrapperAgente, True, True, 0)
 
-		self.caixa.add(self.caixaInterna)
+		# self.wrapper.add(self.caixaInterna)
+		
+		self.caixa.add(self.wrapper)
 		self.caixa.add(self.caixaInferior)
 
 		self.botaoRodar = Gtk.Button("Rodar")
@@ -85,6 +96,10 @@ class JanelaPrincipal(Gtk.Window):
 							imagem += 'ouro'
 						if 'brisa' in self.caverna.salas[i][j]:
 							imagem += 'brisa'
+
+					elif 'wumpusmorto' in self.caverna.salas[i][j]:
+
+						imagem += 'wumpusmorto'
 
 					elif 'ouro' in self.caverna.salas[i][j]:
 						
@@ -144,9 +159,17 @@ class JanelaPrincipal(Gtk.Window):
 						if 'brisa' in self.agente.salasConhecidas[i][j]:
 							imagem += 'brisa'
 
+					elif 'wumpusmorto' in self.agente.salasConhecidas[i][j]:
+
+						imagem += 'wumpusmorto'
+
 					elif 'wumpus?' in self.agente.salasConhecidas[i][j] and '~w' not in self.agente.salasConhecidas[i][j]:
 
 						imagem += 'wumpus?'
+
+						if 'poço?' in self.agente.salasConhecidas[i][j] and '~p' not in self.agente.salasConhecidas[i][j]:
+
+							imagem += 'poço?'
 
 					elif 'ouro' in self.agente.salasConhecidas[i][j]:
 						
@@ -193,28 +216,32 @@ class JanelaPrincipal(Gtk.Window):
 
 		if widget.get_label() == 'Rodar':
 
-			# playsound('Audio/wilhelm_scream.mp3')
-
-			if self.status == 0:
+			if self.status == 0: #Diz se o agente morreu ou encontrou o ouro
 
 				self.status = self.agente.acao()
-
-				# for sala in caminho:
-				# 	lixo, self.status = self.agente.acao(False)
-				# 	self.agente.posicao = sala
-
 				self.caverna.atualizaAgente(self.agente.posicao)
 
 		else:
-			self.caverna.geraCaverna((3,0))
+			self.caverna.geraCaverna((3,0), '0')
 			self.agente.resetaAgente(self.caverna.salas)
 			self.status = 0
 		
-		self.agente.imprimeCaverna()
+		#self.agente.imprimeCaverna()
 		self.gerarMapas(True)
 		self.show_all()
 
+
 	def main(self):
+
+		thread.start_new_thread(soundFX, ('Audio/March of the Spoons.mp3', True))
 
 		Gtk.main()
 		
+def soundFX(arquivo, loop):
+
+	if loop:
+		while (True):
+			playsound(arquivo)
+
+	else:
+		playsound (arquivo)
