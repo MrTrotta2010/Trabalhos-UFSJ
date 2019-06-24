@@ -31,15 +31,15 @@ def criaAutomato (aut, arqEntrada):
 
 		return "ERRO - Arquivo inexistente!"
 
-	try: # Verifica se o arquivo tem a extensão ".aut"
+	# try: # Verifica se o arquivo tem a extensão ".aut"
 
-		if arqEntrada.split('.')[1] != "aut":
+	# 	if arqEntrada.split('.')[1] != "aut":
 
-			return "ERRO - Formato Inválido!"
+	# 		return "ERRO - Formato Inválido!"
 
-	except:
+	# except:
 
-		return "ERRO - Arquivo inválido!"
+	# 	return "ERRO - Arquivo inválido!"
 
 	# Tenta abrir o arquivo de entrada
 	try:
@@ -59,7 +59,7 @@ def criaAutomato (aut, arqEntrada):
 		if linha[0] == '#':
 
 			# Apenas o primeir comentário é tratado como a descrição do autômato
-			if aut.descricao == None:
+			if aut.descricao == "Autômato sem descrição":
 		
 				aut.descricao = linha.replace('#', '')
 				aut.grafo.comment = aut.descricao
@@ -93,10 +93,12 @@ def criaAutomato (aut, arqEntrada):
 
 							elif estado[1] == '+':
 
+								arq.close()
 								return "ERRO - A opção '++' não é válida para os estados!"		
 
 						else:
 
+							arq.close()
 							return "ERRO - O autômato possui mais de um estado inicial!"
 					
 					# Caso o estado venha companhado de '*', é final		
@@ -108,10 +110,12 @@ def criaAutomato (aut, arqEntrada):
 
 							if estado[1] == '*':
 
+								arq.close()
 								return "ERRO - A opção '**' não é válida para os estados!"
 															
 							elif estado[1] == '+':
 
+								arq.close()
 								return "ERRO - A opção '*+' não é válida para os estados!"
 
 				# Formata os nomes dos estados
@@ -133,6 +137,7 @@ def criaAutomato (aut, arqEntrada):
 
 				if estado2 in aut.transicoes[estado1][valores[1]]:
 
+					arq.close()
 					return "ERRO - Transição repetida! - Linha " + str(cont+1) + ": " + linha
 
 				aut.transicoes[estado1][valores[1]].append(estado2)
@@ -140,6 +145,7 @@ def criaAutomato (aut, arqEntrada):
 				# Caso o autômato seja AFD mas tenha alguma transição que leva a um conjunto de estados
 				if aut.tipo == 1 and len(aut.transicoes[estado1][valores[1]]) != 1:
 
+					arq.close()
 					return ("ERRO - O autômato é AFD mas tem transição não determinista! - "+estado1+"-"+valores[1]+"-"
 						+str(aut.transicoes[estado1][valores[1]]))
 
@@ -153,6 +159,7 @@ def criaAutomato (aut, arqEntrada):
 
 				if aut.tipo == -1:
 
+					arq.close()
 					return 'ERRO - Tipo inválido! - ' + valores[0]
 
 				# Tenta armazenar o alfabeto do autômato
@@ -165,10 +172,12 @@ def criaAutomato (aut, arqEntrada):
 
 				except:
 
+					arq.close()
 					return 'ERRO - Alfabeto vazio!'
 
 				if aut.alfabeto[0] == "":
 
+					arq.close()
 					return 'ERRO - Alfabeto vazio!'
 
 				cont += 1
@@ -176,8 +185,6 @@ def criaAutomato (aut, arqEntrada):
 	# Formata o nome do estado inicial
 	aut.estadoInicial = (aut.estadoInicial.replace("+", "")).replace("*", "")
 
-	# Monta o grafo que representa o autômato
-	aut.montaGrafo(arqEntrada)
-
 	# Caso não haja nenhum erro, retorna None
+	arq.close()
 	return None

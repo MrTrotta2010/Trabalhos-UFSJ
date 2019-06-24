@@ -20,11 +20,11 @@ class JanelaPrincipal(Gtk.Window):
 		self.set_size_request(600, 400)
 
 		# Caixa Externa
-		self.caixa = Gtk.Box(spacing=10, orientation=Gtk.Orientation.VERTICAL) # Separação dos itens
+		self.caixa = Gtk.Box(spacing=10, orientation=Gtk.Orientation.VERTICAL)
 		self.add(self.caixa)
 
 		# Caixa Interna
-		self.caixaIn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL) # Separação dos itens
+		self.caixaIn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 		self.caixa.add(self.caixaIn)
 
 		# Barra de Tarefas
@@ -33,12 +33,13 @@ class JanelaPrincipal(Gtk.Window):
 
 		# Imagem
 		self.logo = Gtk.Image()
-		self.logo.set_from_file("Imagens/Logo.png")
-		self.caixa.pack_start(self.logo, True, True, 0) # pack_start adiciona da direita pra esquerda
+		self.logo.set_from_file("Imagens/Logo2.png")
+		self.caixa.pack_start(self.logo, True, True, 0)
 
 	def click (self, widget):
 
 		if widget.get_label() == "Sair":
+
 			Gtk.main_quit()
 
 		elif widget.get_label() == "Abrir":
@@ -55,10 +56,14 @@ class JanelaPrincipal(Gtk.Window):
 				self.automato.destroiAutomato()
 				retorno = criaAutomato(self.automato, self.arquivo)
 
+				# Monta o grafo que representa o autômato
+				self.automato.montaGrafo(self.arquivo)
+
 				if retorno != None:
 
 					abrir.destroy()
 
+					# PopUp de erro
 					popup = PopUp(self, "Erro", retorno, None, None)
 					popup.run()
 
@@ -66,7 +71,8 @@ class JanelaPrincipal(Gtk.Window):
 					
 					return
 				
-				if not self.automatoCarregado: 
+				if not self.automatoCarregado:
+
 					self.descricao = Gtk.Label()
 					self.caixaIn.pack_end(self.descricao, True, True, 0)
 				
@@ -76,8 +82,8 @@ class JanelaPrincipal(Gtk.Window):
 
 				pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
 							filename=self.arquivo.replace("Entradas", "Grafos")+".svg", 
-							width=600, 
-							height=400, 
+							width=650, 
+							height=450, 
 							preserve_aspect_ratio=True)
 				
 				self.logo.set_from_pixbuf(pixbuf)
@@ -109,48 +115,50 @@ class JanelaPrincipal(Gtk.Window):
 					self.entradaPalavra.connect("activate", self.testeEnter)
 					self.entradaPalavra.set_hexpand(True)
 
-					# self.aceitoLabel = Gtk.Label("Aguardando...")
-					# self.wrapper = Gtk.EventBox()
-					# self.wrapper.set_hexpand(True)
-					# self.wrapper.add(self.aceitoLabel)
-
-					# change the colour of the wrapper ....
-					# self.wrapper.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#cecece"))
-
 					self.resultadoImagem = Gtk.Image()
 					self.resultadoImagem.set_from_file("Imagens/aguardando.png")
-
-					# self.botaoTestar = Gtk.Button(label="Testar")
-					# self.botaoTestar.connect("clicked", self.teste)
-					# self.botaoTestar.set_hexpand(True)
-
-					# self.botaoPassoAPasso = Gtk.Button(label="Passo-a-Passo")
-					# self.botaoPassoAPasso.connect("clicked", self.click)
-					# self.botaoPassoAPasso.set_hexpand(True)
 
 					self.passoSwitch = Gtk.Switch()
 					self.passoSwitch.connect("notify::active", self.passoAPasso)
 					self.passoSwitch.set_active(False)
 					self.passoSwitch.set_hexpand(True)
 
-					self.grid.attach(self.entradaPalavraLabel, 0, 0, 1, 1)  # coluna, linha, column spam, row spam
-					self.grid.attach(self.entradaPalavra, 1, 0, 1, 1)  # coluna, linha, column spam, row spam
-					# self.grid.attach(self.aceitoLabel, 4, 0, 1, 2)  # coluna, linha, column spam, row spam
+					self.grid.attach(self.entradaPalavraLabel, 0, 0, 1, 1)
+					self.grid.attach(self.entradaPalavra, 1, 0, 1, 1)
 					self.grid.attach(self.resultadoImagem, 2, 0, 1, 2)
-					self.grid.attach(Gtk.Label("Mostrar passo-a-passo: "), 0, 1, 1, 1)  # coluna, linha, column spam, row spam
-					self.grid.attach(self.passoSwitch, 1, 1, 1, 1)  # coluna, linha, column spam, row spam
-					# self.grid.attach(self.botaoTestar, 2, 1, 2, 1)  # coluna, linha, column spam, row spam
+					self.grid.attach(Gtk.Label("Mostrar passo-a-passo: "), 0, 1, 1, 1)
+					self.grid.attach(self.passoSwitch, 1, 1, 1, 1)
 					
-					# self.caixa.pack_start(self.botaoTestar, True, True, 0)
-				
 				self.show_all()
 
 			abrir.destroy()
 
+		elif widget.get_label() == "Exportar":
+
+			if self.automatoCarregado:
+
+				exportar = Gtk.FileChooserDialog("Exportar autômato", self, Gtk.FileChooserAction.SAVE,
+													("Cancelar", Gtk.ResponseType.CANCEL, "Salvar", Gtk.ResponseType.OK))
+
+				resposta = exportar.run()
+
+				if resposta == Gtk.ResponseType.OK:
+
+					self.automato.grafo.render(filename=(exportar.get_filename()).replace(".svg", ''), format='svg', cleanup=True)
+
+				exportar.destroy()
+
+			else:
+
+				popup = PopUp(self, "Erro", "Nenhum autômato carregado!", self.automato, None)
+				popup.run()
+
+				popup.destroy()
+
 		elif widget.get_label() == "Sobre":
 			
-			# PopUp
-			popup = PopUp(self, "Ajuda", '', self.automato, '')
+			# PopUp de Ajuda
+			popup = PopUp(self, "Ajuda", None, self.automato, None)
 			popup.run()
 
 			popup.destroy()
@@ -170,7 +178,8 @@ class JanelaPrincipal(Gtk.Window):
 
 			if self.mostrarPassoAPasso:
 
-				popup = PopUp(self, "Passo-a-Passo", '', self.automato, self.entradaPalavra.get_text())
+				# PopUp passo a passo
+				popup = PopUp(self, "Passo-a-Passo", None, self.automato, self.entradaPalavra.get_text())
 
 			if retorno[8] == 'a':
 				

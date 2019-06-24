@@ -3,8 +3,10 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GdkPixbuf, Gdk
 from graphviz import Digraph
 
+# Classe geral de PopUp
 class PopUp (Gtk.Dialog):
 
+	# O construtor recebe o tipo de PopUp a ser instanciado
 	def __init__ (self, pai, tipo, erro, automato, palavra):
 
 		if tipo == "Ajuda":
@@ -40,57 +42,46 @@ class PopUp (Gtk.Dialog):
 			self.set_border_width(30)
 
 			titulo = Gtk.Label(erro)
-			# titulo.set_justify(Gtk.Justification.CENTER)
 			self.get_content_area().add(titulo)			
 
 			self.show_all()
 
 		elif tipo == "Passo-a-Passo":
 
+
+			self.pai = pai
 			self.palavra = palavra
 			self.automato = automato
 
 			Gtk.Dialog.__init__(self, "Passo-a-Passo", pai, Gtk.DialogFlags.MODAL)
 
-			# self.set_border_width(30)
+			self.aceita = False
 
-			self.titulo = Gtk.Label("Palavra: " + palavra + "\nEstado Inicial")
+			# Verifica se ao final do processamento da palavra, algum dos estados finais está ativo
+			for estado in automato.estadosFinais:
+				
+				if estado in automato.estadosAtivos[len(palavra)-1]:
+				
+					self.aceita = True
+					break
+
+			self.subtitulo = Gtk.Label()
+			self.subtitulo.set_justify(Gtk.Justification.CENTER)
+
+			if self.aceita:
+
+				self.subtitulo.set_markup("<big><span foreground='green'>Aceita!</span></big>")
+
+			else:
+
+				self.subtitulo.set_markup("<big><span foreground='red'>Não aceita!</span></big>")
+
+			self.titulo = Gtk.Label()
+			self.titulo.set_markup("<big>Palavra: " + palavra + "\nEstado Inicial</big>")
 			self.titulo.set_justify(Gtk.Justification.CENTER)
 
-			self.grafo = Digraph(format='svg')
-			self.grafo.attr(rankdir='LR')
-			# automato.grafo.node(automato.estadoInicial)
-
-			self.grafo.node('', shape='plaintext', fixedsize='true', height='0.1', width='0.1')
-
-			for no in automato.transicoes.keys():
-
-				if no in automato.estadosFinais:
-					self.grafo.attr('node', shape='doublecircle')
-
-				else:
-					self.grafo.attr('node', shape='circle')
-
-				if no == automato.estadoInicial:
-					self.grafo.attr('node', color='red')
-
-				else:
-					self.grafo.attr('node', color='black')
-					
-
-				self.grafo.node(no)
-
-			for no in automato.transicoes.keys():
-
-				if no == self.automato.estadoInicial:
-
-					self.grafo.edge('', no, arrowsize='0.5')
-
-				for transicao in automato.transicoes[no]:
-
-					for no2 in automato.transicoes[no][transicao]:
-
-						self.grafo.edge(no, no2, label=transicao)
+			# Monta o grafo com os estados ativos ressaltados
+			self.grafo = self.pai.automato.montaGrafoPassoAPasso(self.palavra, -1)
 
 			self.grafo.render(filename=(automato.arquivo.replace("Entradas", "Grafos/Passos")), format='svg', cleanup=True)
 			
@@ -106,6 +97,7 @@ class PopUp (Gtk.Dialog):
 			self.caixa = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=40)
 
 			self.caixa.pack_start(self.titulo, True, True, 0)
+			self.caixa.pack_start(self.subtitulo, True, True, 0)
 			self.caixa.pack_start(self.imagem, True, True, 0)
 
 			self.caixaInterna = Gtk.Box(spacing=20)
@@ -135,9 +127,10 @@ class PopUp (Gtk.Dialog):
 
 			if self.indice < len(self.palavra)-1:
 				self.indice += 1
+				self.titulo.set_markup("<big>Palavra: " + self.palavra + "\nProcessou " + self.palavra[self.indice] + "</big>")
 
 			else:
-				self.titulo.set_label("Palavra: " + self.palavra + "\nFim da palavra!")
+				self.titulo.set_markup("<big>Palavra: " + self.palavra + "\nFim da palavra!</big>")
 				self.show_all()
 				return
 
@@ -145,55 +138,14 @@ class PopUp (Gtk.Dialog):
 
 			if self.indice > -1:
 				self.indice -= 1
+				self.titulo.set_markup("<big>Palavra: " + self.palavra + "\nProcessou " + self.palavra[self.indice] + "</big>")
+
+			else:
+				self.titulo.set_markup("<big>Palavra: " + self.palavra + "\nEstado Inicial</big>")
 
 		self.grafo.clear()
-		self.grafo.attr(rankdir='LR')
-		# automato.grafo.node(automato.estadoInicial)
 
-		self.grafo.node('', shape='plaintext', fixedsize='true', height='0.1', width='0.1')
-
-		for no in self.automato.transicoes.keys():
-
-			if no in self.automato.estadosFinais:
-				self.grafo.attr('node', shape='doublecircle')
-
-			else:
-				self.grafo.attr('node', shape='circle')
-
-			if self.indice == -1:
-
-				self.titulo.set_label("Palavra: " + self.palavra + "\nEstado Inicial")
-
-				if no == self.automato.estadoInicial:
-					self.grafo.attr('node', color='red')
-
-				else:
-					self.grafo.attr('node', color='black')
-
-			else:
-
-				self.titulo.set_label("Palavra: " + self.palavra + "\nProcessou " + self.palavra[self.indice])
-
-				if no in self.automato.estadosAtivos[self.indice]:
-					self.grafo.attr('node', color='red')
-
-				else:
-					self.grafo.attr('node', color='black')
-				
-
-			self.grafo.node(no)
-
-		for no in self.automato.transicoes.keys():
-
-			if no == self.automato.estadoInicial:
-
-				self.grafo.edge('', no, arrowsize='0.5')
-
-			for transicao in self.automato.transicoes[no]:
-
-				for no2 in self.automato.transicoes[no][transicao]:
-
-					self.grafo.edge(no, no2, label=transicao)
+		self.grafo = self.pai.automato.montaGrafoPassoAPasso(self.palavra, self.indice)
 
 		self.grafo.render(filename=(self.automato.arquivo.replace("Entradas", "Grafos/Passos")), format='svg', cleanup=True)
 			

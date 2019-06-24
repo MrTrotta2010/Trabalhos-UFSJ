@@ -1,12 +1,13 @@
 from entrada_saida import *
 from graphviz import Digraph
+from queue import Queue
 
 class Automato:
 
 	def __init__ (self): # Construtor
 		
 		self.tipo = None
-		self.descricao = None
+		self.descricao = "Autômato sem descrição"
 		self.alfabeto = []
 		self.transicoes = {}
 		self.estadosAtivos = {}
@@ -37,6 +38,8 @@ class Automato:
 
 			self.grafo.node(no)
 
+		arestas = {}
+
 		for no in self.transicoes.keys(): # Para cada transição, cria uma aresta no grafo
 
 			if no == self.estadoInicial: # Cria a seta do estado inicial
@@ -47,16 +50,102 @@ class Automato:
 
 				for no2 in self.transicoes[no][transicao]:
 
-					self.grafo.edge(no, no2, label=transicao)
+					if (no+' '+no2) in arestas.keys():
+						arestas[no+' '+no2] = arestas[no+' '+no2] + ", " + transicao
 
+					else:
+						arestas[no+' '+no2] = transicao
+
+		for aresta in arestas.keys():
+
+			self.grafo.edge(aresta.split(' ')[0], aresta.split(' ')[1], label=arestas[aresta])
+			
 		# Salva o grafo num arquivo svg, pasta "Grafos"
 		self.grafo.render(filename=(arquivo.replace("Entradas", "Grafos")), format='svg', cleanup=True)
+
+	# Devolve um grafo ressaltando os estados ativos de palavra ao processar indice
+	def montaGrafoPassoAPasso (self, palavra, indice):
+
+		grafo = Digraph()
+		grafo.attr(rankdir='LR')
+		# automato.grafo.node(automato.estadoInicial)
+
+		grafo.node('', shape='plaintext', fixedsize='true', height='0.1', width='0.1')
+
+		# Para cada no, decide se ressalta ou não
+		for no in self.transicoes.keys():
+
+			if no in self.estadosFinais:
+				grafo.attr('node', shape='doublecircle')
+
+			else:
+				grafo.attr('node', shape='circle')
+
+			# Caso antes do processamento da palavra
+			if indice == -1:
+
+				# O estado inicial se ativa
+				if no == self.estadoInicial:
+					grafo.attr('node', color='red')
+
+				else:
+					grafo.attr('node', color='black')
+
+			# Caso contrário
+			else:
+
+				# Se o nó estiver aivo, é colorido de vermelho
+				if no in self.estadosAtivos[indice]:
+					grafo.attr('node', color='red')
+
+				else:
+					grafo.attr('node', color='black')
+
+			grafo.node(no)
+
+		# Dicionário auxiliar para evitar transições desnecessárias
+		# i.e., ao caso haja mais de uma transição saindo do nó a e levando ao no b, elas são
+		# condensadas na mesma transição
+		arestas = {}
+
+		# Para cada transição, condensa as transições desnecessárias
+		for no in self.transicoes.keys():
+
+			for transicao in self.transicoes[no]:
+
+				for no2 in self.transicoes[no][transicao]:
+
+					if (no+' '+no2) in arestas.keys():
+						arestas[no+' '+no2].append(transicao)
+
+					else:
+						arestas[no+' '+no2] = [transicao]
+
+		# Para cada transição, decide se ressalta ou não
+		for aresta in arestas.keys():
+
+			no = aresta.split(' ')
+			no2 = no[1]
+			no = no[0]
+
+			if indice > 0 and palavra[indice] in arestas[aresta] and no2 in self.estadosAtivos[indice] and no in self.estadosAtivos[indice-1]:
+				grafo.attr('edge', color='red')
+
+			elif indice == 0 and palavra[indice] in arestas[aresta] and no == self.estadoInicial:
+				grafo.attr('edge', color='red')
+
+			else:
+				grafo.attr('edge', color='black')
+
+			grafo.edge(no, no2, label=(((str(arestas[aresta])).replace("'", '')).replace(']', '')).replace('[', ''))
+
+		return grafo
 
 	def destroiAutomato (self): # Reseta todos os dados do autômato
 
 		self.arquivo = None
 		self.tipo = None
-		self.descricao = None
+		self.descricao = "Autômato sem descrição"
 		self.alfabeto.clear()
 		self.transicoes.clear()
 		self.estadosAtivos.clear()
@@ -108,8 +197,8 @@ class Automato:
 			estadoAtual = self.estadoInicial
 
 			# A pilha armazena duplas do tipo (estado, indice da palavra a ser processado no estado)
-			pilha = []
-			pilha.append([estadoAtual, caractere])
+			fila = Queue()
+			fila.put([estadoAtual, caractere])
 
 			# Caso o usuário queira exibir o passo-a-passo, limpa o dicionário de estados,
 			# pois ele será diferente para cada palavra
@@ -120,9 +209,9 @@ class Automato:
 			while True:
 	
 				# Se a pilha não estiver vazia, desempílha uma dupla e processa a transição a partir do estado
-				if len(pilha) > 0: 
+				if not fila.empty(): 
 
-					aux = pilha.pop()
+					aux = fila.get()
 					estadoAtual = aux[0] # Novo estado atual
 					caractere = aux[1] # Indice da palavra que armazena o caractere a ser processado
 
@@ -153,7 +242,7 @@ class Automato:
 						
 						# O passo-a-passo funciona armazenando em um dicionário todos os estados
 						# ativos ao processar cada símbolo da palavra
-						if passoAPasso and caractere != -1:
+						if passoAPasso:
 
 							if caractere not in self.estadosAtivos.keys():
 
@@ -165,15 +254,15 @@ class Automato:
 							# Caso o caminho de processamento não tenha terminado, empilha o estado
 							# e o próximo índice da palavra a ser processado
 							if caractere + 1 != len(palavra):
-								pilha.append([estado, caractere+1])
+								fila.put([estado, caractere+1])
 
 							# Caso o índice da palavra seja o último, fim de um caminho de processamento
 							else:
-								pilha.append([estado, -1])
+								fila.put([estado, -1])
 
 							# Armazena o estado no dicionário de passo-a-passo
-							if passoAPasso and caractere != -1 and (estado not in self.estadosAtivos[caractere]):
-								self.estadosAtivos[caractere].append((estado.replace('*', '')).replace('+', ''))
+							if passoAPasso and estado not in self.estadosAtivos[caractere]:
+								self.estadosAtivos[caractere].append(estado)
 
 		return retorno
 

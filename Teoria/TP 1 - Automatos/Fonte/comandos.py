@@ -22,7 +22,7 @@ def decodificaComando (comando, automato):
 		print ("   :a - Mostra o tipo do autômato")
 		print ("   :d - Mostra a descrição do autômato")
 		print ("   :ta - Trocar autômato")
-		print ("   :c - Limpa a tela do prorama")
+		print ("   :c - Limpa a tela do programa")
 		print ("   :h - Exibe a ajuda")
 		print ("   :p <palavra> - Mostra o processamento de <palavra> passo a passo")
 		print ("   :q - Encerra o programa")
@@ -147,7 +147,7 @@ def decodificaComando (comando, automato):
 		
 		return None
 
-	elif (comando[0], comando[1]) == ('t', 'a'): # Troca o autômato carregado
+	elif len(comando) > 1 and (comando[0], comando[1]) == ('t', 'a'): # Troca o autômato carregado
 
 		comando = comando.split(' ')
 

@@ -3,14 +3,19 @@ sys.path.append('Fonte/')
 
 from entrada_saida import *
 from automato import *
+from automatoPilha import *
 from comandos import *
 
 if __name__ == "__main__":
 
 	# Recebe o arquivo de entrada por argumentos
-	arqEntrada = pegaArqEntrada(sys.argv)
+	arqEntrada, tipo = pegaArqEntrada(sys.argv)
 
-	automato = Automato()
+	if 0 < tipo < 3:
+		automato = Automato()
+
+	else:
+		automato = AutomatoPilha()
 
 	# Tenta criar o automato a partir do arquvo de entrada
 	retorno = criaAutomato(automato, arqEntrada)

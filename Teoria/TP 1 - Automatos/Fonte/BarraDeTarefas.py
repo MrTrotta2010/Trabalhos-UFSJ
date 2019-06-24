@@ -12,13 +12,19 @@ class BarraTarefas (Gtk.MenuBar):
 		self.menuArquivo = Gtk.Menu()
 		self.menuArquivoDropdown = Gtk.MenuItem("Arquivo")
 
+		self.arquivoNovo = Gtk.MenuItem("Novo")
+		self.arquivoNovo.connect("activate", pai.click)
 		self.arquivoAbrir = Gtk.MenuItem("Abrir")
 		self.arquivoAbrir.connect("activate", pai.click)
 		self.arquivoSair = Gtk.MenuItem("Sair")
 		self.arquivoSair.connect("activate", pai.click)
+		self.arquivoExportar = Gtk.MenuItem("Exportar")
+		self.arquivoExportar.connect("activate", pai.click)
 
 		self.menuArquivoDropdown.set_submenu(self.menuArquivo)
+		self.menuArquivo.append(self.arquivoNovo)
 		self.menuArquivo.append(self.arquivoAbrir)
+		self.menuArquivo.append(self.arquivoExportar)
 		self.menuArquivo.append(Gtk.SeparatorMenuItem())
 		self.menuArquivo.append(self.arquivoSair)
 
