@@ -1,6 +1,7 @@
 from entrada_saida import *
 from graphviz import Digraph
 from queue import Queue
+from misc import Any
 
 class Automato:
 
@@ -9,6 +10,7 @@ class Automato:
 		self.tipo = None
 		self.descricao = "Autômato sem descrição"
 		self.alfabeto = []
+		self.alfabetoPilha = []
 		self.transicoes = {}
 		self.estadosAtivos = {}
 		self.estadoInicial = None
@@ -147,6 +149,7 @@ class Automato:
 		self.tipo = None
 		self.descricao = "Autômato sem descrição"
 		self.alfabeto.clear()
+		self.alfabetoPilha.clear()
 		self.transicoes.clear()
 		self.estadosAtivos.clear()
 		self.estadoInicial = None
@@ -265,6 +268,177 @@ class Automato:
 								self.estadosAtivos[caractere].append(estado)
 
 		return retorno
+
+	def testaPalavraPilha (self, palavra, passoAPasso):
+
+		if palavra == '': # Caso a palavra seja vazia
+
+			if self.estadoInicial in self.estadosFinais:
+				retorno = "Palavra aceita!"
+		
+			else:
+				retorno = "Palavra não aceita!"
+
+		else:
+
+			# Verifica se a palavra é aceita pelo alfabeto do autômato
+			retorno = self.verificaAlfabeto(palavra)
+
+		if retorno == True: # Caso seja, testa as transições
+
+			# Índices da palavra
+			caractere = 0
+			caractereAnterior = 0
+
+			# A busca começa no estado inicial e tenta alcançar o estado final
+			estadoAtual = self.estadoInicial
+
+			# A fila armazena duplas do tipo (estado, indice da palavra a ser processado no estado)
+			fila = [[estadoAtual, caractere]]
+
+			# A pilha do autômato começa vazia
+			pilha = []
+
+			# Variável usada como tipo 'coringa'
+			ANYTHING = Any()
+
+			# Caso o usuário queira exibir o passo-a-passo, limpa o dicionário de estados,
+			# pois ele será diferente para cada palavra
+			if passoAPasso:
+
+				self.estadosAtivos.clear()
+
+			while True:
+	
+				# Se a fila não estiver vazia, desempílha uma dupla e processa a transição a partir do estado
+				if len(fila) > 0: 
+
+					aux = fila.pop(0)
+					estadoAtual = aux[0] # Novo estado atual
+					caractere = aux[1] # Indice da palavra que armazena o caractere a ser processado
+
+				# Se a pilha estiver vazia, significa que, ao final do processamento,
+				# nenhum estado final foi atingido
+				else:
+
+					retorno = "Palavra não aceita!"
+
+					break
+
+				# Se o índice a ser processado for -1, significa que o autômato chegou
+				# ao fim de um dos caminhos de processamento da palavra
+				if caractere == -1:
+
+					# Dessa forma, se o estado atual for final, a palavra deve ser aceita
+					if estadoAtual in self.estadosFinais:
+
+						retorno = "Palavra aceita!"
+						
+						break
+
+				# Do contrário, processa a transição a prtir do estado atual
+				else:
+
+					# Processa as transições vazias
+					self.transicoesVazias(fila, estadoAtual, caractere)
+					print(fila)
+					#input()
+
+					# Processa as transições interrogativas
+					self.transicoesInterrogativas(fila, estadoAtual, caractere, palavra, pilha)
+
+					# Processa a transição
+					for transicao in self.transicoes[estadoAtual].keys():
+
+						# Caso a transição exista na tabela de transições
+						if transicao[0] == palavra[caractere]:
+
+							# O passo-a-passo funciona armazenando em um dicionário todos os estados
+							# ativos ao processar cada símbolo da palavra
+							if passoAPasso:
+
+								if caractere not in self.estadosAtivos.keys():
+
+									self.estadosAtivos[caractere] = []
+
+							# Para todos os estados atingidos a partir da transição
+							for estado in self.transicoes[estadoAtual][transicao]:
+
+								print(estadoAtual, estado)
+
+								desempilha = transicao[1]
+								empilha = transicao[2]
+
+								try:
+									if desempilha != '&' and desempilha != '?':
+										pilha.reverse()
+										pilha.remove(desempilha)
+										pilha.reverse()
+
+								except:
+									pass
+
+								else:
+									# Caso o caminho de processamento não tenha terminado, empilha o estado
+									# e o próximo índice da palavra a ser processado
+									if caractere + 1 != len(palavra):
+										fila.append([estado, caractere+1])
+
+									# Caso o índice da palavra seja o último, fim de um caminho de processamento
+									else:
+										fila.append([estado, -1])
+
+									# Armazena o estado no dicionário de passo-a-passo
+									if passoAPasso and estado not in self.estadosAtivos[caractere]:
+										self.estadosAtivos[caractere].append(estado)
+
+									if empilha != '&' and empilha != '?':
+										pilha.append(empilha)
+
+		return retorno
+
+	def transicoesVazias (self, fila, estado, caractere):
+
+		filaTemp = [estado]
+		transVazia = ('&', '&', '&')
+
+		while len(filaTemp) > 0:
+
+			atual = filaTemp.pop(0)
+
+			if transVazia in self.transicoes[atual]:
+	
+				for e in self.transicoes[atual][transVazia]:
+
+					filaTemp.append(e)
+					fila.append([e, caractere])
+
+	def transicoesInterrogativas (self, fila, estado, caractere, palavra, pilha):
+
+		for transicao in self.transicoes[estado]:
+
+			if transicao[0] == '?':
+
+				if transicao[1] == '?':
+
+					if caractere == len(palavra)-1 and len(pilha) == 0:
+						for e in self.transicoes[estado][transicao]:
+							fila.append([e, -1])
+
+				else:
+					if caractere == len(palavra)-1:
+						for e in self.transicoes[estado][transicao]:
+							fila.append([e, -1])
+
+			elif transicao[1] == '?':
+
+				for e in self.transicoes[estado][transicao]:
+					
+					if caractere == len(palavra)-1:
+						fila.append([e, -1])
+
+					else:
+						fila.append([e, caractere+1])
 
 	# Imprime o dicionário de passo-a-passo
 	def imprimePassoAPasso (self, palavra):

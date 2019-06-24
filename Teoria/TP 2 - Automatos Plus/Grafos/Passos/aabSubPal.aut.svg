@@ -15,7 +15,7 @@
 <!-- q0 -->
 <g id="node2" class="node">
 <title>q0</title>
-<ellipse fill="none" stroke="#ff0000" cx="19.4983" cy="-44.5" rx="19.4965" ry="19.4965"/>
+<ellipse fill="none" stroke="#000000" cx="19.4983" cy="-44.5" rx="19.4965" ry="19.4965"/>
 <text text-anchor="middle" x="19.4983" y="-40.8" font-family="Times,serif" font-size="14.00" fill="#000000">q0</text>
 </g>
 <!-- q0&#45;&gt;q0 -->
@@ -28,14 +28,14 @@
 <!-- q1 -->
 <g id="node3" class="node">
 <title>q1</title>
-<ellipse fill="none" stroke="#000000" cx="115.4948" cy="-63.5" rx="19.4965" ry="19.4965"/>
+<ellipse fill="none" stroke="#ff0000" cx="115.4948" cy="-63.5" rx="19.4965" ry="19.4965"/>
 <text text-anchor="middle" x="115.4948" y="-59.8" font-family="Times,serif" font-size="14.00" fill="#000000">q1</text>
 </g>
 <!-- q0&#45;&gt;q1 -->
 <g id="edge1" class="edge">
 <title>q0&#45;&gt;q1</title>
-<path fill="none" stroke="#000000" d="M36.9954,-53.475C43.1594,-56.2261 50.2385,-58.9371 56.9965,-60.5 66.2108,-62.6309 76.4505,-63.6095 85.7546,-63.9918"/>
-<polygon fill="#000000" stroke="#000000" points="85.6866,-67.491 95.7572,-64.1997 85.8321,-60.4926 85.6866,-67.491"/>
+<path fill="none" stroke="#ff0000" d="M36.9954,-53.475C43.1594,-56.2261 50.2385,-58.9371 56.9965,-60.5 66.2108,-62.6309 76.4505,-63.6095 85.7546,-63.9918"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="85.6866,-67.491 95.7572,-64.1997 85.8321,-60.4926 85.6866,-67.491"/>
 <text text-anchor="middle" x="67.4965" y="-67.3" font-family="Times,serif" font-size="14.00" fill="#000000">a</text>
 </g>
 <!-- q1&#45;&gt;q0 -->

@@ -19,6 +19,7 @@ def decodificaComando (comando, automato):
 		print ("   :lf - Lista os estados finais do autômato")
 		print ("   :lt - Lista as transições do autômato")
 		print ("   :la - Lista o alfabeto do autômato")
+		print ("   :lp - Lista o alfabeto de pilha do autômato")
 		print ("   :a - Mostra o tipo do autômato")
 		print ("   :d - Mostra a descrição do autômato")
 		print ("   :ta - Trocar autômato")
@@ -49,9 +50,17 @@ def decodificaComando (comando, automato):
 
 			print ("<< AFD")
 
-		else:
+		elif automato.tipo == 2:
 
 			print ("<< AFN")
+
+		elif automato.tipo == 3:
+
+			print ("<< APD")
+
+		else:
+
+			print ("<< APN")
 
 		return None
 
@@ -67,9 +76,17 @@ def decodificaComando (comando, automato):
 
 				print ("<< AFD: " + automato.descricao)
 
-			else:
+			elif automato.tipo == 2:
 
 				print ("<< AFN: " + automato.descricao)
+
+			elif automato.tipo == 3:
+
+				print ("<< APD: " + automato.descricao)
+
+			else:
+				
+				print ("<< APN: " + automato.descricao)
 
 		return None
 
@@ -127,6 +144,16 @@ def decodificaComando (comando, automato):
 	elif comando == 'la': # Exibe o alfabeto aceito pelo autõmato
 
 		print ("<< Alfabeto: " + str(automato.alfabeto))
+	
+		return None
+
+	elif comando == 'lp': # Exibe o alfabeto de pilha do autõmato
+
+		if automato.tipo > 2:
+			print ("<< Alfabeto de Pìlha: " + str(automato.alfabetoPilha))
+
+		else:
+			print ("<< O autômato não é um Autômato de Pilha")
 	
 		return None
 

@@ -3,19 +3,14 @@ sys.path.append('Fonte/')
 
 from entrada_saida import *
 from automato import *
-from automatoPilha import *
 from comandos import *
 
 if __name__ == "__main__":
 
 	# Recebe o arquivo de entrada por argumentos
-	arqEntrada, tipo = pegaArqEntrada(sys.argv)
+	arqEntrada = pegaArqEntrada(sys.argv)
 
-	if 0 < tipo < 3:
-		automato = Automato()
-
-	else:
-		automato = AutomatoPilha()
+	automato = Automato()
 
 	# Tenta criar o automato a partir do arquvo de entrada
 	retorno = criaAutomato(automato, arqEntrada)
@@ -91,7 +86,12 @@ if __name__ == "__main__":
 
 				# Caso o usuário não digite um comando, o autômato testa a
 				#palavra
-				print("<< "+automato.testaPalavra(palavra, False))
+
+				if automato.tipo < 3:
+					print("<< "+automato.testaPalavra(palavra, False))
+
+				else:
+					print("<< "+automato.testaPalavraPilha(palavra, False))
 
 		else:
 
