@@ -26,16 +26,36 @@ char **carregaTokens() {
 
 ListaTokens analiseLexica (char *codigo) {
     
-    char pivo, sentinela;
+    int pivo = 0, sentinela, posicaoPal;
     ListaTokens listaTokens;
+	char *caractere = NULL, palavra[256];
 
-    regex_t coment;
-    regcomp(&coment, "/*.*/", int cflags);
+	regex_t coment;
+	regcomp(&coment, "/\*.\*/", REG_EXTENDED|REG_NOSUB);
+    regex_t alfa;
+	regcomp(&alfa, "[a-zA-Z]", REG_EXTENDED|REG_NOSUB);
+    regex_t separador;
+	regcomp(&separador, "[/s;,]", REG_EXTENDED | REG_NOSUB);
 
-    for (int i = 0; i < strlen(codigo); i++) {
+	while (pivo < strlen(codigo)) {
 
-        pivo = codigo[i];
-        printf("%c", pivo);
+        *caractere = codigo[pivo];
+		sentinela = pivo;
+		posicaoPal = 0;
+		//printf("%c", pivo);
+
+		if ((regexec(&alfa, caractere, 0, (regmatch_t *)NULL, 0)) == 0) {
+
+			while ((regexec(&separador, caractere, 0, (regmatch_t *)NULL, 0)) != 0) {
+				sentinela++;
+				palavra[posicaoPal] = *caractere;
+				posicaoPal++;
+			}
+
+			printf("%s\n", palavra);
+
+		} else
+			printf("Não Casou\n");
     }
 
     return listaTokens;

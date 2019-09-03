@@ -15,7 +15,12 @@ int main (int argc, char **argv) {
     // for (int i = 0; i < NUM_TOKENS; i++)
     //     printf ("\t%s\n", tokenTable[i]);
 
-    lista = analiseLexica(entrada);
+    //lista = analiseLexica(entrada);
+
+    free(entrada);
+    for (int i = 0; i < NUM_TOKENS; i++)
+        free(tokenTable[i]);
+    free(tokenTable);
 
     return 0;
 }
