@@ -3,7 +3,7 @@
 char *carregaPrograma (char *arquivo) {
 
 	FILE *entrada = fopen(arquivo, "r");
-	char *buffer = NULL;
+	char *buffer;
 	unsigned long tamanho;
 
 	if (entrada) {
@@ -11,9 +11,13 @@ char *carregaPrograma (char *arquivo) {
 		fseek(entrada, 0, SEEK_END);
 		tamanho = ftell(entrada);
 		fseek(entrada, 0, SEEK_SET);
-		buffer = malloc(tamanho);
+		buffer = calloc(tamanho+1, sizeof(char));
 		fread(buffer, 1, tamanho, entrada);
 		fclose(entrada);
+
+	} else {
+		printf("Erro ao abrir o arquivo de entrada \"%s\"!\n", arquivo);
+		exit(1);
 	}
 
 	return buffer;
