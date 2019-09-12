@@ -17,27 +17,27 @@ Limitações:
 - Podem haver bugs ainda não catalogados.
 
 Uma entrada do tipo:
-// int func (int a) {
-//     a *= a;
-//     return a;
-// }
+int func (int a) {
+    a *= a;
+    return a;
+}
 
 Resultará numa lista de tokens do tipo:
->> 0 - RESERVADA: int
->>     Linha 1, coluna 1
->> 
->> 1 - IDENTIFICADOR: func
->>     Linha 1, coluna 5
->>     
->> 6 - SEPARADOR: (
->>     Linha 1, coluna 10
->>     
->> 0 - RESERVADA: int
->>     Linha 1, coluna 11
->> (...)
+0 - RESERVADA: int
+    Linha 1, coluna 1
+
+1 - IDENTIFICADOR: func
+    Linha 1, coluna 5
+    
+6 - SEPARADOR: (
+    Linha 1, coluna 10
+    
+0 - RESERVADA: int
+    Linha 1, coluna 11
+(...)
 
 A lista de tokens será exibida no terminal, seguindo o padrão:
-ID - CLASEE: valor
+ID - CLASSE: valor
     Linha i, coluna j
 
 Licença: me siga no soundcloud e no youtube.
