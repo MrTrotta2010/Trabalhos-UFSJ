@@ -1,29 +1,43 @@
-# Trabalhos-UFSJ
+# GCCINHO - Mini compilador de C
 
-Repositório com os trabalhos da facu
+Trabalho desenvolvido na disciplina de Compiladores do curso de baixarelado em Ciência da Computação da UFSJ.
+Por Tiago Trotta, setembro de 2019.
 
 Para instalar:
 - sudo apt-install git
 
-Para clonar o repositório:
-- git clone <link no github> //Na pasta criada
+Instruções para compilar e executar:
+- Para compilar: $ make
+- Para executar: $ ./gccinho <arquivo em c>
 
-Para criar uma branch:
-- git checkout -b <nome da branch>
-    ou
-- git branch <nome da branch>
-  
-Para atualizar a branch: 
-- git add <nome do arquivo> //Adiciona os arquivos à lista de arquivos
-- git commit -m "Descrição da atualização"
-- git push origin <nome da branch>
+Limitações:
+- Possui, ainda, somente o analisador léxico;
+- Reconhece uma variedade muito pequena de erros léxicos;
+- Não aponta a posição correta das palavras
+- Podem haver bugs ainda não catalogados.
 
-Para atualizar o repositório local:
-- git pull <link no github> <nome da branch>
-  
-Para juntar as branches A e B:
-- git checkout A //Entrar em uma das branches
-- git pull <link no github> B
-- git commit -m "Descrição" //Dar commit no merge
-- Revisar as mudanças e/ou resolver os conflitos
-- git push origin A //Empurrar a branch para o github
+Uma entrada do tipo:
+// int func (int a) {
+//     a *= a;
+//     return a;
+// }
+
+Resultará numa lista de tokens do tipo:
+>> 0 - RESERVADA: int
+>>     Linha 1, coluna 1
+>> 
+>> 1 - IDENTIFICADOR: func
+>>     Linha 1, coluna 5
+>>     
+>> 6 - SEPARADOR: (
+>>     Linha 1, coluna 10
+>>     
+>> 0 - RESERVADA: int
+>>     Linha 1, coluna 11
+>> (...)
+
+A lista de tokens será exibida no terminal, seguindo o padrão:
+ID - CLASEE: valor
+    Linha i, coluna j
+
+Licença: me siga no soundcloud e no youtube.
