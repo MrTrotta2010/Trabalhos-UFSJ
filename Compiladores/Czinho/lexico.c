@@ -166,6 +166,9 @@ ListaTokens *analiseLexica (char *codigo) {
 			coluna++;
 			caractere = codigo[sentinela];
 			while (caractere != caractereAnt) {
+				if (caractere == '\n') {
+					linha++;
+				}
 				palavra[posicaoPal] = caractere;
 				posicaoPal++;
 				sentinela++;
@@ -180,6 +183,7 @@ ListaTokens *analiseLexica (char *codigo) {
 		//Operadores aritméticos, comentários e números negativos
 		else if (opAritmetico(caractere)) {
 			int op = TRUE;
+			int contLinha = 0;
 			palavra[0] = caractere;
 			char caractereAnt = caractere;
 			sentinela++;
@@ -211,8 +215,10 @@ ListaTokens *analiseLexica (char *codigo) {
 					sentinela++;
 					caractere = codigo[sentinela];
 					while (caractere != '*') {
-						if (caractere == '\n')
+						if (caractere == '\n') {
 							linha++;
+							contLinha++;
+						}
 						palavra[posicaoPal] = caractere;
 						posicaoPal++;
 						coluna++;
@@ -242,10 +248,6 @@ ListaTokens *analiseLexica (char *codigo) {
 					coluna++;
 					caractere = codigo[sentinela];
 				}
-				if (caractere == '\n') {
-					linha++;
-					coluna = 1;
-				}
 				for (int i = 0; i < strlen(palavra); i++) {
 					if (palavra[i] == '@' || palavra[i] == '#') {
 						deuErro = TRUE;
@@ -261,7 +263,7 @@ ListaTokens *analiseLexica (char *codigo) {
 			else if (op == 2)			
 				novoToken = criaToken("NUMERO", palavra, 2, linha, coluna);
 			else
-				novoToken = criaToken("COMENTARIO", palavra, 7, linha, coluna);
+				novoToken = criaToken("COMENTARIO", palavra, 7, linha-contLinha, coluna);
 			insereToken(listaTokens, novoToken);
 			pivo = sentinela;
 		}
@@ -305,11 +307,9 @@ ListaTokens *analiseLexica (char *codigo) {
 
 	if (deuErro) {
 		liberaLista(listaTokens);
-		printListaToken(listaErros);
-	    return listaTokens;
+	    return listaErros;
 	}
 
 	liberaLista(listaErros);
-	printListaToken(listaTokens);
-    return listaErros;
+    return listaTokens;
 } 

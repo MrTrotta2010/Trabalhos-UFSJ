@@ -61,7 +61,7 @@ int printListaToken(ListaTokens *tkl){
 	while(aux != NULL){
 		printf("------------------------------------------------\n");
 		printf("-> %d - %s: %s\n", aux->tk.id, aux->tk.classe, aux->tk.valor);
-		printf("       Linha %d, coluna %d\n",aux->tk.linha, aux->tk.coluna);
+		printf("       Linha %d\n",aux->tk.linha);
 		printf("------------------------------------------------\n");
 		aux = aux->prox;
 	}

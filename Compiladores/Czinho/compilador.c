@@ -2,8 +2,6 @@
 
 int main (int argc, char **argv) {
 
-    char pivo, sentinela;
-
     //FILE *saida = fopen("tokens.dat", "r");
     char *entrada = carregaPrograma(argv[1]);
     //char **tokenTable = carregaTokens();
