@@ -2,7 +2,7 @@
 
 int separador (char caractere) {
 
-	char separadores[] = {' ', ',', ';', ':','(', ')', '{', '}', '[', ']', '=', '#'};
+	char separadores[] = {' ', '.', ',', ';', ':','(', ')', '{', '}', '[', ']', '=', '#'};
 	for (int i = 0; i < strlen(separadores); i++) {
 		if (separadores[i] == caractere) return 1;
 	}
@@ -51,14 +51,11 @@ Token criaToken (char classe[256], char valor[256], int id, int linha, int colun
 	return tk;
 }
 
-ListaTokens *analiseLexica (char *codigo) {
+int analiseLexica (char *codigo, ListaTokens *listaTokens, ListaTokens *listaErros) {
 
     long unsigned int pivo = 0, tamanho = strlen(codigo); 
 	int sentinela, posicaoPal, linha = 1, coluna = 1, deuErro = FALSE;
 	char caractere;
-
-    ListaTokens *listaTokens = criaLista();
-    ListaTokens *listaErros = criaLista();
 
 	//Le o código caractere por caractere
 	while (pivo < tamanho) {
@@ -75,7 +72,7 @@ ListaTokens *analiseLexica (char *codigo) {
 			coluna = 1;
 		}
 
-		//Palavras reservadas que começam com '#'
+		//Diretivas de compilação
 		if (caractere == '#') {
 			sentinela++;
 			coluna++;
@@ -92,7 +89,7 @@ ListaTokens *analiseLexica (char *codigo) {
 			// 	linha++;
 			// 	coluna = 1;
 			// }
-			Token novoToken = criaToken("RESERVADA", palavra, 0, linha, coluna-1);
+			Token novoToken = criaToken("DIRETIVA", palavra, 8, linha, coluna-1);
 			insereToken(listaTokens, novoToken);
 			pivo = sentinela;
 		}
@@ -100,36 +97,50 @@ ListaTokens *analiseLexica (char *codigo) {
 		//Identificadores e outras palavras reservadas
 		else if (isalpha(caractere) || caractere == '_' || caractere == '@') {
 			int erro = FALSE;
+            char aux = codigo[pivo-1];
 			if (caractere == '@' || caractere == '#' || isdigit(caractere)) {
 				erro = TRUE;
 			}
-			while (!separador(caractere) && !opAritmetico(caractere) && !opLogico(caractere) && caractere != '\n') {
-				palavra[posicaoPal] = caractere;
-				posicaoPal++;
-				sentinela++;
-				coluna++;
-				caractere = codigo[sentinela];
-			}
-			//Erros:
-			for (int i = 0; i < strlen(palavra); i++) {
-				if (palavra[i] == '@' || palavra[i] == '#') {
-					erro = TRUE;
-					break;
-				}
-			}
-			if (erro) {
-				deuErro = TRUE;
-				Token errToken = criaToken("ERRO!", palavra, -1, linha, coluna-1);
-				insereToken(listaErros, errToken);
-			} else {
-				Token novoToken;
-				if (reservada(palavra))
-					novoToken = criaToken("RESERVADA", palavra, 0, linha, coluna-1);
-				else
-					novoToken = criaToken("IDENTIFICADOR", palavra, 1, linha, coluna-1);
+            if (aux != '<') {
+                while (!separador(caractere) && !opAritmetico(caractere) && !opLogico(caractere) && caractere != '\n') {
+                    palavra[posicaoPal] = caractere;
+                    posicaoPal++;
+                    sentinela++;
+                    coluna++;
+                    caractere = codigo[sentinela];
+                }
+                //Erros:
+                for (int i = 0; i < strlen(palavra); i++) {
+                    if (palavra[i] == '@' || palavra[i] == '#') {
+                        erro = TRUE;
+                        break;
+                    }
+                }
+                if (erro) {
+                    deuErro = TRUE;
+                    Token errToken = criaToken("ERRO!", palavra, -1, linha, coluna-1);
+                    insereToken(listaErros, errToken);
+                } else {
+                    Token novoToken;
+                    if (reservada(palavra))
+                        novoToken = criaToken("RESERVADA", palavra, 0, linha, coluna-1);
+                    else {
+                        novoToken = criaToken("IDENTIFICADOR", palavra, 1, linha, coluna-1);
+                    }
 
-				insereToken(listaTokens, novoToken);
-			}
+                    insereToken(listaTokens, novoToken);
+                }
+            } else {
+                while (caractere != '>') {
+                    palavra[posicaoPal] = caractere;
+                    posicaoPal++;
+                    sentinela++;
+                    coluna++;
+                    caractere = codigo[sentinela];
+                }
+                Token novoToken = criaToken("BIBLIOTECA", palavra, 9, linha, coluna-1);
+                insereToken(listaTokens, novoToken);
+            }
 			pivo = sentinela;
 		}
 
@@ -284,7 +295,7 @@ ListaTokens *analiseLexica (char *codigo) {
 				palavra[1] = caractere;
 				sentinela++;
 			}
-			Token novoToken = criaToken("OPERADOR_LOGICO", palavra, 5, linha, coluna);
+            Token novoToken = criaToken("OPERADOR_LOGICO", palavra, 5, linha, coluna);
 			insereToken(listaTokens, novoToken);
 			pivo = sentinela;
 		}
@@ -305,11 +316,5 @@ ListaTokens *analiseLexica (char *codigo) {
 		}
     }
 
-	if (deuErro) {
-		liberaLista(listaTokens);
-	    return listaErros;
-	}
-
-	liberaLista(listaErros);
-    return listaTokens;
+    return deuErro;
 } 
