@@ -1,6 +1,6 @@
 # GCCINHO - Mini compilador de C
 
-Trabalho desenvolvido na disciplina de Compiladores do curso de baixarelado em Ciência da Computação da UFSJ.
+Trabalho desenvolvido na disciplina de Compiladores do curso de bacharelado em Ciência da Computação da UFSJ.
 Por Tiago Trotta, setembro de 2019.
 
 Para instalar:
