@@ -1,0 +1,14 @@
+AFD [a,b,c]
+#aab como sub-palavra
++q0-a-q1
++q0-b-+q0
++q0-c-+q0
+q1-a-q2
+q1-b-+q0
+q1-c-+q0
+q2-a-q2
+q2-b-*qf
+q2-c-+q0
+*qf-a-*qf
+*qf-b-*qf
+*qf-c-*qf

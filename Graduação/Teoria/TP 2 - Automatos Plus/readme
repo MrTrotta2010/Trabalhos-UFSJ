@@ -1,0 +1,75 @@
+Desenvolvido por:
+    Lucas Rezende, Thiago Adriano, Tiago Trotta e Yan Victor - UFSJ - 2019
+
+
+Requisitos:
+    - Python 3
+    - Gtk +3.0
+    - Biblioteca Graphviz para Python
+
+    Obs.: o programa foi testado apenas em sistemas operacionais Linux.
+
+
+Como executar o programa:
+
+    - Modo textual:
+
+    Execute, na pasta raiz do trabalho, o comando:
+      python3 text_mode.py <endereço do arquivo de entrada>
+
+    Caso nenhum arquivo de entrada seja específicado, o programa, ao ser iniciado, solicitará um.
+
+    O arquivo de entrada deve estar no formato 'aut' (mais sobre o formato aut ao final do documento).
+
+    Com um autômato carregado na memória, o usuário pode fornecer palavras e verificar se são aceitas.
+    Além disso, também é possível executar diversos comandos, que se iniciam com o caractere ':'.
+      Ex: :p 001 -> Roda o passo-a-passo para a palavra '001'
+      Para obter a lista completa de comandos, digite ':h'.
+
+
+    - Modo GUI:
+
+    Para carregar um autômato, clique em 'Arquivo/Abrir' e selecione um arquivo de entrada.
+
+    O arquivo de entrada deve estar no formato 'aut' (mais sobre o formato aut ao final do documento).
+
+    Com um autômato carregado na memória, o usuário pode fornecer palavras e verificar se são aceitas.
+    Além disso, é possível testar palavras no modo passo-a-passo, ativando o switch 'Mostrar passo-a-passo'.
+    No modo passo-a-passo, são ressaltados os estados ativos com o processamento de cada um dos caracteres
+    da palavra especificada.
+
+    Com um autômato carregado na memória, também é possível exportar sua visualização para uma imagem
+    no formato 'svg'.
+
+
+Sobre o formato 'aut'
+
+    Este programa aceita apenas entradas no formato 'aut', desenvolvido pelos integrantes do grupo.
+    
+    O formato segue o seguinte padrão:
+
+      - A primeira linha do arquivo deve conter o tipo do autômato (AFN ou AFD) seguido do alfabeto, com os
+        símbolos entre chaves e separados por vírgula, separados por espaço.
+        Ex: AFD [0,1]
+
+      - As linhas seguintes representam uma, e somente uma, transição cada. Cada transição, deve conter
+        o estado a partir do qual a transição ocorre, seguido do símbolo cujo processamento ativa a
+        transição, seguidos do estado ativado pela transição, separados por hífem.
+        Ex: q0-1-q1
+        
+        Caso uma determinada transição ative mais de um estado, ela deve ser representada em múltiplas linhas.
+        Ex: q0-1-q1
+            q0-1-q2
+
+      - Quanto à representação de estados iniciais e finais:
+          Caso o estado seja inicial, deve apresentar o caractere '+' no início do nome.
+          Caso seja final, deve apresentar o caractere '*' no início do nome.
+          Caso seja inicial e final, deve apresentar os '+*' no início do nome.
+          Ex: +q0-1-*q1 -> q0 é um estado inicial e q1 é um estado final
+
+          É importante ressaltar que os caraceteres '*', '+' e '+*' devem estar presentes em todas as
+          ocorrências do estado no arquivo.
+
+      - Caso uma linha se inicie com o caractere '#', ela será tratada como um comentário e seu conteúdo será
+        ignorado, com exceção da primeira linha de comentário, cujo conteúdo será tratado como uma descrição
+        do autômato representado, e será exibida no programa.

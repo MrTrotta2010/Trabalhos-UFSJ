@@ -1,0 +1,8 @@
+#01 como sub-palavra
+AFD [0,1]
++q0-0-q1
++q0-1-+q0
+q1-0-q1
+q1-1-*qf
+*qf-0-*qf
+*qf-1-*qf

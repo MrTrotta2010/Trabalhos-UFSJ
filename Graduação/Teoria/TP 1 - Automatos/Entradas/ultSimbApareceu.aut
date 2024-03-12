@@ -1,0 +1,20 @@
+AFN [a,b,c]
+#O último símbolo precisa ter aparecido previamente
++q0-a-+q0
++q0-b-+q0
++q0-c-+q0
++q0-a-q1
++q0-b-q2
++q0-c-q3
+q1-a-q1
+q1-b-q1
+q1-c-q1
+q1-a-*qf
+q2-a-q2
+q2-b-q2
+q2-c-q2
+q2-b-*qf
+q3-a-q3
+q3-b-q3
+q3-c-q3
+q3-c-*qf
